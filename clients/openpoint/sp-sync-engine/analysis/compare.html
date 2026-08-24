@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Final Review: OP-SP vs SP-CL</title>
+<style>
+  @font-face { font-family:"ABC Social"; src:url("https://www.openpoint.com/wp-content/themes/open-point-launch/assets/fonts/ABCSocial-Regular.woff2") format("woff2"); }
+  @font-face { font-family:"ABC Otto"; src:url("https://www.openpoint.com/wp-content/themes/open-point-launch/assets/fonts/ABCOtto-Regular.woff2") format("woff2"); }
+  @font-face { font-family:"Memoir"; src:url("https://www.openpoint.com/wp-content/themes/open-point-launch/assets/fonts/Memoir.woff2") format("woff2"); }
+  :root { --ivory:#f7f7f4; --slate:#101c07; --clay:#354b16; --signal:#bace42; --oat:#efefeb; --olive:#354b16; --gray-150:#efefeb; --gray-300:#d4d5cf; --gray-500:#62645e; --gray-700:#373731; --text-on-dark:#fff6e9; --muted-on-dark:#d4d5cf; --display:"Memoir",Arial,sans-serif; --serif:"ABC Otto",Arial,sans-serif; --sans:"ABC Social",Arial,sans-serif; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:32px 28px 60px; background:var(--ivory); color:var(--gray-700); font-family:var(--sans); font-size:14px; line-height:1.6; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  .eyebrow { color:var(--clay); font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+  .as-at { margin:-9px 0 22px; color:var(--gray-500); font-family:var(--mono); font-size:9px; letter-spacing:.08em; text-transform:uppercase; }
+  h1,h2,h3 { color:var(--slate); font-family:var(--serif); font-weight:500; line-height:1.1; }
+  h1 { margin:8px 0 16px; font:48px/.98 var(--display); letter-spacing:0; text-transform:uppercase; }
+  h2 { margin:42px 0 14px; padding-top:18px; border-top:1px solid var(--gray-300); font-size:28px; }
+  h3 { margin:26px 0 9px; font-size:20px; }
+  h4 { margin:18px 0 7px; color:var(--slate); font-size:13px; }
+  p { margin:0 0 13px; }
+  ul,ol { margin:0 0 16px; padding-left:21px; }
+  li { margin:4px 0; }
+  .intro { color:var(--gray-500); font-size:16px; }
+  blockquote { margin:20px 0; padding:18px 20px; border-left:4px solid var(--clay); background:#fff; color:var(--slate); font-family:var(--serif); font-size:19px; line-height:1.35; }
+  code { padding:1px 4px; background:var(--gray-150); font-family:var(--mono); font-size:.88em; overflow-wrap:anywhere; }
+  pre { margin:16px 0; padding:16px; overflow:auto; border:1px solid var(--gray-300); border-radius:8px; background:var(--slate); color:var(--ivory); font-family:var(--mono); font-size:11px; line-height:1.5; }
+  .table-wrap { margin:16px 0; overflow-x:auto; border:1px solid var(--gray-300); border-radius:8px; }
+  table { width:100%; min-width:560px; border-collapse:collapse; font-size:11px; }
+  th,td { padding:9px 10px; border-bottom:1px solid var(--gray-300); text-align:left; vertical-align:top; }
+  th { background:var(--slate); color:var(--ivory); font-family:var(--mono); font-size:9px; letter-spacing:.03em; text-transform:uppercase; }
+  tr:last-child td { border-bottom:0; }
+  .callout { margin:18px 0; padding:16px 18px; border:1px solid var(--oat); border-radius:8px; background:#fffdf8; }
+  .callout strong { color:var(--slate); }
+  .method-note { margin:0 0 28px; padding:3px 0 3px 18px; border-left:3px solid var(--clay); }
+  .method-note .title { margin-bottom:8px; color:var(--slate); font-family:var(--serif); font-size:18px; }
+  .method-note .reproduce { margin-top:12px; color:var(--gray-500); font-size:12px; }
+  .download-report { display:inline-block; margin-top:4px; padding:8px 13px; border:1px solid var(--signal); background:var(--signal); color:var(--slate); font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.04em; text-decoration:none; text-transform:uppercase; }
+  .download-report:hover { background:transparent; color:#a54f35; }
+  .comparison-purpose { max-width:900px; margin-bottom:13px; color:var(--gray-700); font-size:16px; }
+  .comparison-purpose.closing { margin-bottom:28px; }
+  .scale { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:16px 0; }
+  .stat { padding:14px; background:var(--slate); color:var(--muted-on-dark); }
+  .stat b { display:block; color:var(--signal); font-family:var(--serif); font-size:26px; font-weight:500; line-height:1.1; }
+  .stat span { font-size:10px; }
+  .bottom { margin-top:36px; padding:24px; background:var(--slate); color:var(--muted-on-dark); }
+  .bottom h2 { margin:0 0 12px; padding:0; border:0; color:var(--text-on-dark); }
+  .bottom strong { color:var(--text-on-dark); }
+  @media (max-width:480px) { body { padding:24px 18px 48px; } h1 { font-size:32px; } .scale { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+  <div class="eyebrow">Clean-room comparative analysis</div>
+  <h1>Review: OP-SP vs SP-CL</h1>
+  <p class="as-at">As at 20 August 2026</p>
+
+  <div class="method-note">
+    <div class="title">How this report was created</div>
+    <p>This report is a clean-room AI analysis of delivered source, tests, Git history and available project records. A fresh agent, given no preferred conclusion, reconstructed and compared both integrations from repository evidence.</p>
+    <p class="reproduce"><strong>To reproduce it:</strong> point your preferred AI agent at the <code>cl-core</code>, <code>op-core</code>, <code>sp-core</code> and <code>sp-api</code> repositories, and request an evidence-backed comparison of delivered capability, architecture, security, operations, testing and technical complexity.</p>
+    <p class="reproduce"><strong>To verify it:</strong> download the report in Markdown, provide it to your preferred AI agent alongside the four repositories, and ask the agent to independently compare the systems and verify the report's findings against source and Git evidence.</p>
+    <a class="download-report" href="compare.md" download="op-sp-vs-sp-cl-comparison.md" type="application/octet-stream">Download the report</a>
+  </div>
+
+  <p class="comparison-purpose">Scale, complexity and delivery pace are more legible when they have a credible reference point, as <strong>a substantial integration can look deceptively simple when described only through its final user experience</strong>. The OP-SP connector project offers that reference: a substantial workstream in the same product ecosystem, addressing a related integration problem through a different architecture and engineering approach.</p>
+  <p class="comparison-purpose closing">The comparison provides context for understanding the scope, depth and delivery speed of the SP-CL Sync Engine without treating the two programmes as identical. The overall picture is of <strong>a materially larger and more technically complex workstream, delivered in a fraction of the elapsed time</strong> through an AI-first model led by one developer.</p>
+
+  <div class="bottom">
+    <h2>Final Assessment</h2>
+    <p><strong>Breadth:</strong> OP-SP has greater configurable product breadth. SP-CL has greater source-domain and lifecycle breadth. <i><strong>Overall breadth advantage: SP-CL, but not overwhelmingly</strong></i>. OP-SP remains more flexible for arbitrary customer mapping.</p>
+    <p><strong>Architectural depth, technical complexity and technical sophistication:</strong> <i><strong>clear advantage SP-CL</strong></i>. Its security boundaries, canonical mutation kernel, complete-snapshot contract, operation ledger, removal lifecycle and file finalisation introduce several layers with no OP-SP equivalent.</p>
+    <p><strong>Engineering effort:</strong> <i><strong>SP-CL combined materially greater system scope, architectural depth and lifecycle complexity with a substantially shorter delivery window</strong></i>. It was not simply a similar connector delivered faster. It was a larger class of integration delivered in a fraction of the elapsed time. The contrast offers one view of AI-first versus AI-assisted delivery, including the greater rewrite and refactor risk that an AI-first approach must actively manage.</p>
+    <h2>Bottom Line</h2>
+    <p>OP-SP is a substantial, configurable enterprise ingestion connector. <strong><i>SP-CL is a larger synchronisation platform with deeper security, identity, reconciliation, file, operational and verification architecture.</i></strong></p>
+    <p>OP-SP's primary sophistication lies in configurable mapping and integration into OpenPoint's generic Event/Stakeholder product model. SP-CL's primary sophistication lies in proving and preserving correctness across two independently owned platforms over time: who owns each field, what constitutes a complete source snapshot, how updates and deletions reconcile, how files survive retries and replacements, how credentials and target authority are established, and how all of that is validated across languages and deployments.</p>
+    <p>On capability, design depth, technical complexity and measured engineering scope, SP-CL is materially bigger. On configurable administration and destination flexibility, OP-SP remains stronger.</p>
+  </div>
+
+  <h2>Executive Conclusion</h2>
+  <p class="intro">Both are substantial integration programmes, but they solve different classes of problem.</p>
+  <ul>
+    <li><strong>OP-SP is strongest in configurable product integration:</strong> generic field mapping, project administration, stakeholder creation, schema discovery, error administration, and flexible mapping of Social Point submissions into OpenPoint entities.</li>
+    <li><strong>SP-CL is stronger in systems and data-lifecycle engineering:</strong> cryptographic linking, credential custody, exact source authority, complete-snapshot reconciliation, canonical create/update/delete semantics, files, durable finalisation, operation recovery, and cross-repository contract enforcement.</li>
+  </ul>
+  <blockquote><strong>SP-CL is materially larger, deeper and more technically sophisticated as an integration system.</strong> OP-SP is broader in administrator-controlled mapping and destination modelling, but implements a simpler one-way event-ingestion lifecycle.</blockquote>
+  <p>The accepted SP-CL implementation represents approximately <strong>double the measured code changes</strong> of the accepted OP-SP implementation. Including SP-CL's discarded work increases programme-level investment further. This is evidence of relative implementation scale, not a literal measure of difficulty or person-hours.</p>
+
+  <h2>Capability Comparison</h2>
+  <div class="table-wrap"><table><thead><tr><th>Capability</th><th>OP-SP</th><th>SP-CL</th></tr></thead><tbody>
+    <tr><td>Primary purpose</td><td>Convert SP submissions into configurable OpenPoint events and stakeholders</td><td>Maintain private CL analytical representations of SP tools</td></tr>
+    <tr><td>Integration model</td><td>Event-driven, one-way ingestion</td><td>Authoritative complete-snapshot synchronisation</td></tr>
+    <tr><td>Tool families</td><td>Eight recognised</td><td>Nine accepted analytical adapters</td></tr>
+    <tr><td>Destination model</td><td>Generic OpenPoint Events and Stakeholders</td><td>Native CL projects, spaces, blocks, submissions, contacts and files</td></tr>
+    <tr><td>Field configuration</td><td>Rich administrator-defined mappings</td><td>Fixed, adapter-owned analytical schemas</td></tr>
+    <tr><td>Source updates</td><td>New submission events</td><td>Create, update, replay and authoritative removal</td></tr>
+    <tr><td>Source deletion</td><td>Not propagated</td><td>Canonical hard removal</td></tr>
+    <tr><td>Files</td><td>Not imported</td><td>Versioned transfer, replacement, retry and cleanup</td></tr>
+    <tr><td>Contacts</td><td>Configurable stakeholder resolution and creation</td><td>Adapter-policy-controlled contact reconciliation</td></tr>
+    <tr><td>Write-back to SP</td><td>No</td><td>No</td></tr>
+    <tr><td>Native SP product parity</td><td>No</td><td>Explicitly out of scope</td></tr>
+    <tr><td>Operator controls</td><td>Connection, project, tool and field mapping UI</td><td>Linking, metadata refresh, sync progress, warnings, retry and detach</td></tr>
+    <tr><td>Failure handling</td><td>Service Bus abandon/dead-letter plus failure records</td><td>Operation ledger, Graphile retries, terminalisation and durable finalisation</td></tr>
+  </tbody></table></div>
+
+  <h2>OP-SP Architecture</h2>
+  <p>The modern OP-SP connector is not a simple webhook. It has a substantial OpenPoint-side service architecture:</p>
+  <pre>SP submission
+  -&gt; SP Core listener
+  -&gt; SP API event publisher
+  -&gt; Azure Service Bus
+  -&gt; OpenPoint subscription handler
+  -&gt; tenant/project/tool resolution
+  -&gt; schema and mapping validation
+  -&gt; stakeholder resolution
+  -&gt; Event creation
+  -&gt; connector links and failure records</pre>
+  <h3>Principal Layers</h3>
+  <ul><li>OAuth2 client-credential exchange, token caching and refresh.</li><li>Social Point API client, Site-to-OP tenant routing and project mapping.</li><li>Tool and member schema ingestion with per-field mapping and default-value configuration.</li><li>Submission-to-Event conversion, member-to-Stakeholder resolution and automatic stakeholder creation.</li><li>Event-type resolution, Service Bus settlement policy, failure persistence and connector link-health jobs.</li><li>GraphQL administration API and full React configuration UI.</li></ul>
+  <p>Relevant areas include <code>op-core/ConsultationManager/src/MySite.API.Shared/OpenPointPlatform/</code>, <code>op-core/ConsultationManager/src/MySite.ConsultationManager.UI/react/pages/entity/PlatformIntegration/</code> and <code>sp-api/app_hive/_local/model/OpenPoint.php</code>.</p>
+  <h3>Its Strongest Capability</h3>
+  <p>OP-SP's distinguishing feature is its <strong>generic mapping surface</strong>. Administrators can link SP and OP projects, select enabled tools, discover source schemas, map source fields to destination entity fields, configure defaults and fixed mappings, configure member-to-stakeholder mappings, detect changed source fields, control automatic stakeholder creation and view connector failures.</p>
+  <p>That makes OP-SP more adaptable without code changes. SP-CL deliberately does not attempt this.</p>
+  <h3>Practical Data Limitations</h3>
+  <p>OP-SP recognises eight tool families, but its practical import vocabulary is narrower than that headline implies:</p>
+  <ul><li>Text and textarea values are supported, and single-choice values can be represented as text.</li><li>Member attributes can be mapped.</li><li>Multi-choice appears configurable but is skipped by the current ingestion mapper.</li><li>Files, matrix, grid, ranking and complex structured answers are unsupported.</li><li>Source edits and deletions are not reconciled. There is no bidirectional synchronisation.</li><li>Standalone member-update publication is absent from current source.</li></ul>
+  <p>Consequently, OP-SP's tool breadth is primarily <strong>mapping breadth over common scalar fields</strong>, rather than nine distinct source-native analytical models.</p>
+  <h3>Reliability Model</h3>
+  <p>Once accepted by Azure Service Bus, the architecture provides at-least-once processing, retry, dead-lettering and OP-side idempotency. Its principal reliability gap is before Service Bus: no durable SP-side outbox was found, failed synchronous publication is not demonstrably retried later, no complete modern backfill/reconciliation process was identified, and no verified user-driven replay workflow for persisted failures or dead-lettered messages was found.</p>
+  <p>The legacy <code>CmCms</code> connector had more direct bulk/report synchronisation facilities, but belongs to a separate earlier generation.</p>
+
+  <h2>SP-CL Architecture</h2>
+  <p>SP-CL is a multi-repository synchronisation system:</p>
+  <pre>Signed SP launch
+  -&gt; CL verifies issuer/Site/Edge/target
+  -&gt; provider credential exchange
+  -&gt; KMS-encrypted connector
+  -&gt; project/tool catalogue
+  -&gt; complete bounded source snapshot
+  -&gt; adapter acquire/conform/plan
+  -&gt; canonical mutation kernel
+  -&gt; durable processing and file finalisation
+  -&gt; analytical CL destination</pre>
+  <h3>Nine Accepted Adapters</h3>
+  <p>Quick Poll, Form App, Visioner, Question and Answer, Budget, Social Map, Forum, Conversation, and Gather with Comments. Legacy Form is deliberately excluded. MetroQuest and unknown tools remain unsupported.</p>
+  <p>Unlike OP-SP's generic scalar mapper, each SP-CL adapter explicitly models source-native structure: Q&amp;A question/selected-answer relationships; Visioner moderation and vote facts; Budget allocation semantics; Social Map location, category and respondent-file evidence; Forum wrapper/backing relationships; Conversation thread records; Gather story/comment hierarchy and visual files; and Form App current-definition fields and attachments.</p>
+  <p>This adapter logic shares a standard structure, but it is not simply duplicated boilerplate. The shared <code>acquire -&gt; conform -&gt; plan -&gt; apply</code> boundary reduces repetition while each adapter still handles materially different identity, hierarchy, schema and warning semantics.</p>
+  <h3>Canonical Mutation Kernel</h3>
+  <p>All adapters use the same canonical submission lifecycle: <code>insert</code>, <code>upsert</code>, and <code>reconcile</code>. The kernel owns native IDs and <code>short_id</code> allocation, authoritative source timestamps, source/native ownership boundaries, immediate email and location projections, counts and <code>data_hash</code>, exact-replay no-op behaviour, audit evidence, durable processing intent and canonical removal.</p>
+  <p>Relevant implementation: <code>server/src/app/submissions/mutation/kernel.ts</code> and <code>server/src/app/submissions/mutation/finalisation.ts</code>.</p>
+  <div class="callout"><strong>This is a major architectural distinction.</strong><br>OP-SP asks, "How should this event be mapped when it arrives?" SP-CL additionally asks whether the snapshot is complete, whether the source identity owns the destination record, what changed, what CL owns, what must be removed, which projections and files must change atomically, and what processing must be committed for eventual completion.</div>
+  <h3>Authoritative Removal</h3>
+  <p>SP-CL's deletion path handles submission comments and activities, email and location indexes, NLP and TSV state, status and processing rows, file database associations, physical-file deletion intent, reply detachment, submission and reply counts, <code>data_hash</code>, bounded removal audit evidence and contact-project-link recomputation. OP-SP has no comparable source-of-truth removal lifecycle.</p>
+  <h3>File Lifecycle</h3>
+  <ol><li>Acquire the complete source snapshot.</li><li>Record immutable source file/version identity.</li><li>Stage private operation evidence.</li><li>Transfer files independently with bounded retry.</li><li>Verify limits and source ownership.</li><li>Apply the record and successful files through the canonical lifecycle.</li><li>Preserve a stale prior file if replacement fails.</li><li>Clean staged and removed objects durably.</li></ol>
+  <p>Controls include maximum file count, per-file and cumulative byte limits, exact replay suppression, short-lived provider URLs, no forwarded bearer credential, no redirect chains, digest and declared-size checks, guaranteed finalisation and deterministic cleanup. This subsystem alone is more involved than OP-SP's complete submission transport.</p>
+
+  <h2>Security Comparison</h2>
+  <h3>OP-SP</h3>
+  <p>OP-SP provides sound conventional integration security: OAuth2 client credentials, encrypted secrets and access tokens, Azure federated identity or SAS for Service Bus, role and project-scope authorisation, Sentinel integration user, tenant routing, feature flags and single-retry token refresh.</p>
+  <p>However, the Service Bus namespace is the principal inbound trust boundary. No application-level signed submission envelope or strict cross-repository versioned contract was identified.</p>
+  <h3>SP-CL</h3>
+  <ol><li>SP Core alone holds the Ed25519 initiation seed.</li><li>CL verifies the domain-separated initiation signature before side effects.</li><li>Issuer, Site, Edge, audience, target and provider origin are pinned.</li><li>Provider credential issue, confirm and offboard are separately scoped.</li><li>CL encrypts credentials with KMS and identity-bound associated data.</li><li>One-time exchanges and browser handoffs are expiry- and replay-protected.</li><li>Core distrusts the controller's loaded project/tool and independently resolves current placement.</li><li>Current-user eligibility is re-authorised against that resolved project.</li><li>Native CL writes reject unauthorised mutation of provider-owned state.</li><li>Callback handling applies SSRF, DNS, IP, TLS and request-size controls.</li></ol>
+  <p>SP-CL is materially deeper in security architecture.</p>
+
+  <h2>Operations Comparison</h2>
+  <div class="table-wrap"><table><thead><tr><th>Concern</th><th>OP-SP</th><th>SP-CL</th></tr></thead><tbody>
+    <tr><td>Queue</td><td>Azure Service Bus + Hangfire</td><td>Graphile Worker</td></tr><tr><td>Application ledger</td><td>Failure records</td><td>Full operation state machine</td></tr><tr><td>Admission idempotency</td><td>Connector record links</td><td>Operation folding + source identity</td></tr><tr><td>Retry</td><td>Message abandon/redelivery</td><td>Job retry plus typed operator retry</td></tr><tr><td>Terminal failure</td><td>Dead-letter/failure record</td><td>Terminal operation state with warnings/failure code</td></tr><tr><td>Revision fencing</td><td>Not identified</td><td>Connector revision fencing</td></tr><tr><td>Complete source acquisition</td><td>No</td><td>Required before mutation</td></tr><tr><td>File operations</td><td>No</td><td>Separate transfer/finalise jobs</td></tr><tr><td>Detach/offboard</td><td>Configuration removal</td><td>Supported credential/marker lifecycle</td></tr><tr><td>Progress UI</td><td>Schema-ingestion progress</td><td>Phase, counts, warnings and retries</td></tr>
+  </tbody></table></div>
+  <p>SP-CL's operational model is more complex because synchronisation is a multi-stage operation rather than one incoming event.</p>
+
+  <h2>Testing and Verification</h2>
+  <p>Both projects contain serious testing.</p>
+  <h3>OP-SP Strengths</h3>
+  <p>OP-SP has strong OpenPoint-side unit and integration coverage for OAuth and token refresh, concurrent refresh collapse, API client error handling, schema ingestion, mapping validation, stakeholder resolution, numeric and date coercion, transaction rollback, failure settlement, deep links and health checks, GraphQL administration and React configuration workflows.</p>
+  <p>Its weaker area is the SP publisher and cross-repository contract boundary. Generic Service Bus transport is tested, but complete SP-submission-to-OP contract coverage is limited.</p>
+  <h3>SP-CL Strengths</h3>
+  <p>SP-CL's verification programme covers strict schemas in TypeScript and PHP, byte-identical cross-language fixtures, boundary and one-past-boundary tests, complete-snapshot and density limits, replay idempotency, source-scope isolation, validation-before-lock ordering, transaction rollback, canonical removal, file replacement and cleanup, current-placement ambiguity, credential and callback boundaries, migration rehearsal, database concurrency, controlled real-source probes, first sync and replay for all nine adapters, and independent adversarial review.</p>
+  <p>Twelve product defects were reportedly found during controlled <code>cnvl-test</code> UAT that local validation had missed. All nine adapter families subsequently reached controlled acceptance. SP-CL has the broader cross-system verification model.</p>
+
+  <h2>Relative Strengths</h2>
+  <h3>OP-SP Is Stronger At</h3>
+  <ul><li>Generic administrator-defined field mapping.</li><li>Destination flexibility.</li><li>Stakeholder-centric CRM integration.</li><li>Mapping UI breadth.</li><li>Supporting changing customer configurations without source changes.</li><li>Conventional enterprise event-integration patterns.</li><li>Integrating SP contributions into an existing OpenPoint event model.</li></ul>
+  <h3>SP-CL Is Stronger At</h3>
+  <ul><li>Exact source authority and identity.</li><li>Rich source-native analytical models.</li><li>Update and delete reconciliation.</li><li>Native data lifecycle integrity.</li><li>Files and file replacement.</li><li>Cryptographic cross-system linking.</li><li>Credential custody and trust separation.</li><li>Durable multi-stage operations.</li><li>Retry and finalisation.</li><li>Cross-language contract verification.</li><li>Boundary-driven tests and live acceptance.</li><li>Explicit failure semantics instead of best-effort mapping.</li></ul>
+
+  <div class="bottom">
+    <h2>Final Assessment</h2>
+    <p><strong>Breadth:</strong> OP-SP has greater configurable product breadth. SP-CL has greater source-domain and lifecycle breadth. <i><strong>Overall breadth advantage: SP-CL, but not overwhelmingly</strong></i>. OP-SP remains more flexible for arbitrary customer mapping.</p>
+    <p><strong>Architectural depth, technical complexity and technical sophistication:</strong> <i><strong>clear advantage SP-CL</strong></i>. Its security boundaries, canonical mutation kernel, complete-snapshot contract, operation ledger, removal lifecycle and file finalisation introduce several layers with no OP-SP equivalent.</p>
+    <p><strong>Engineering effort:</strong> <i><strong>SP-CL combined materially greater system scope, architectural depth and lifecycle complexity with a substantially shorter delivery window</strong></i>. It was not simply a similar connector delivered faster. It was a larger class of integration delivered in a fraction of the elapsed time. The contrast offers one view of AI-first versus AI-assisted delivery, including the greater rewrite and refactor risk that an AI-first approach must actively manage.</p>
+    <h2>Bottom Line</h2>
+    <p>OP-SP is a substantial, configurable enterprise ingestion connector. <strong><i>SP-CL is a larger synchronisation platform with deeper security, identity, reconciliation, file, operational and verification architecture.</i></strong></p>
+    <p>OP-SP's primary sophistication lies in configurable mapping and integration into OpenPoint's generic Event/Stakeholder product model. SP-CL's primary sophistication lies in proving and preserving correctness across two independently owned platforms over time: who owns each field, what constitutes a complete source snapshot, how updates and deletions reconcile, how files survive retries and replacements, how credentials and target authority are established, and how all of that is validated across languages and deployments.</p>
+    <p>On capability, design depth, technical complexity and measured engineering scope, SP-CL is materially bigger. On configurable administration and destination flexibility, OP-SP remains stronger.</p>
+  </div>
+  <script>
+    document.querySelector(".download-report").addEventListener("click", async (event) => {
+      event.preventDefault();
+
+      const reportLink = event.currentTarget;
+
+      try {
+        const response = await fetch(reportLink.href);
+        if (!response.ok) {
+          window.location.assign(reportLink.href);
+          return;
+        }
+
+        const markdown = await response.text();
+        const objectUrl = URL.createObjectURL(new Blob([markdown], { type: "text/markdown;charset=utf-8" }));
+        const downloadLink = document.createElement("a");
+        downloadLink.href = objectUrl;
+        downloadLink.download = reportLink.download;
+        downloadLink.click();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+      } catch {
+        window.location.assign(reportLink.href);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security &amp; Authority - SP Sync Engine</title>
+<link rel="stylesheet" href="assets/shared.css?v=white-signal-1">
+<script src="assets/site.js?v=tool-adapters-1" defer></script>
+<style>
+  /* Page-unique CSS for 01-security-authority.html only.
+     Shared design-system rules live in assets/shared.css, see plan/style-guide.md. */
+  .where-tag { max-width: 100%; overflow-wrap: anywhere; }
+
+  /* ── three gates ──────────────────────── */
+  .gates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 18px 0 8px; }
+  @media (max-width: 760px) { .gates { grid-template-columns: 1fr; } }
+  .gate-card {
+    border: 1.5px solid var(--gray-300); border-radius: 12px; background: #fff; padding: 18px;
+    position: relative; overflow: hidden;
+  }
+  .gate-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+  .gate-card.g1::before { background: var(--gray-500); }
+  .gate-card.g2::before { background: var(--a-core); }
+  .gate-card.g3::before { background: var(--olive); }
+  .gate-card .idx { font-family: var(--mono); font-size: 11px; color: var(--gray-500); margin-bottom: 8px; }
+  .gate-card h4 { font-family: var(--serif); font-size: 17px; color: var(--slate); margin-bottom: 6px; font-weight: 500; }
+  .gate-card p { font-size: 13.5px; margin-bottom: 8px; }
+  .gate-card .where { font-family: var(--mono); font-size: 10.5px; color: var(--gray-500); overflow-wrap: anywhere; }
+  .gate-arrow { text-align: center; font-family: var(--mono); font-size: 11px; color: var(--gray-500); margin: 6px 0 4px; }
+
+  /* ── gate live-toggle row (bento bottom row, aligned under the cards) ─── */
+  .gate-toggle-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 10px 0 8px; }
+  @media (max-width: 760px) { .gate-toggle-row { grid-template-columns: 1fr; } }
+  .gate-toggle-cell {
+    border: 1.5px solid var(--gray-300); border-radius: 10px; background: var(--gray-150); padding: 12px 16px;
+  }
+  .gate-toggle-cell .gtc-label {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--gray-500); margin-bottom: 10px;
+  }
+  .gtc-control { display: flex; align-items: center; justify-content: space-between; }
+  .switch { position: relative; display: inline-block; width: 38px; height: 21px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; inset: 0; background: var(--gray-300);
+    border-radius: 24px; transition: background 150ms;
+  }
+  .slider::before {
+    content: ""; position: absolute; height: 15px; width: 15px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; transition: transform 150ms; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  input:checked + .slider { background: var(--op-lime); }
+  input:checked + .slider::before { background: var(--text-on-signal); }
+  input:checked + .slider::before { transform: translateX(17px); }
+  .gate-state-label { font-family: var(--mono); font-size: 10.5px; }
+  .gate-state-label.on { color: var(--olive); }
+  .gate-state-label.off { color: var(--rust); }
+
+  .gate-result {
+    border-radius: 10px; padding: 14px 18px; margin: 4px 0 8px; font-family: var(--mono); font-size: 13.5px;
+    display: flex; align-items: center; gap: 12px; border: 1.5px solid; transition: background 150ms, border-color 150ms;
+  }
+  .gate-result.allowed { background: #edf1e7; border-color: var(--olive); color: var(--gray-700); }
+  .gate-result.blocked { background: rgba(176,74,63,0.08); border-color: var(--rust); color: var(--gray-700); }
+  .gate-result b.allow { color: var(--olive); }
+  .gate-result b.block { color: var(--rust); }
+  .gate-taxonomy { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .gate-taxonomy > div { border: 1.5px solid var(--gray-300); border-radius: 10px; padding: 15px 17px; background: #fff; }
+  .gate-taxonomy .runtime { border-color: var(--clay); background: rgba(217,119,87,0.05); }
+  .gate-taxonomy .kind { display: block; font-family: var(--mono); font-size: 9.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 4px; }
+  .gate-taxonomy b { display: block; font-family: var(--serif); font-size: 17px; font-weight: 500; color: var(--slate); margin-bottom: 5px; }
+  .gate-taxonomy p { font-size: 12.5px; margin: 0; }
+
+  /* ── authority and credential custody ───── */
+  .authority-model { margin: 20px 0 30px; border: 1.5px solid var(--gray-300); border-radius: 12px; overflow-x: auto; background: #fff; }
+  .authority-model table { border-collapse: collapse; width: 100%; min-width: 700px; }
+  .authority-model caption { padding: 11px 12px; color: var(--gray-500); font-size: 11px; text-align: left; }
+  .authority-model th { background: var(--slate); color: var(--text-on-dark); font-family: var(--sans); font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase; padding: 10px 12px; text-align: left; }
+  .authority-model td { border-bottom: 1px solid var(--gray-300); padding: 11px 12px; vertical-align: top; font-size: 12px; line-height: 1.45; }
+  .authority-model tr:last-child td { border-bottom: 0; }
+  .authority-model td:first-child { color: var(--slate); font-family: var(--serif); font-size: 14px; font-weight: 600; }
+  .authority-model .limit { color: var(--rust); }
+  .custody-title { margin: 24px 0 9px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--gray-500); }
+  .custody-rail { display: grid; grid-template-columns: repeat(5, 1fr); margin-bottom: 24px; }
+  .custody-item { position: relative; border: 1.5px solid var(--gray-300); border-right: 0; background: #fff; padding: 13px 14px; min-height: 96px; }
+  .custody-item:first-child { border-radius: 10px 0 0 10px; }
+  .custody-item:last-child { border-right: 1.5px solid var(--gray-300); border-radius: 0 10px 10px 0; }
+  .custody-item:not(:last-child)::after { content: ">"; position: absolute; z-index: 2; right: -6px; top: 50%; color: var(--clay); font-weight: 800; transform: translateY(-50%); }
+  .custody-item b { display: block; color: var(--slate); font-size: 12px; margin-bottom: 5px; }
+  .custody-item span { display: block; color: var(--gray-500); font-size: 10.5px; line-height: 1.4; }
+
+  /* ── handshake phases ───────────────────── */
+  .handshake-phases { display: grid; grid-template-columns: repeat(4, 1fr); margin: 18px 0; border: 1.5px solid var(--gray-300); border-radius: 11px; overflow: hidden; background: #fff; }
+  .handshake-phase { min-height: 135px; padding: 15px; border-right: 1px solid var(--gray-300); }
+  .handshake-phase:last-child { border-right: 0; }
+  .handshake-phase .phase-num { color: var(--clay); font-family: var(--mono); font-size: 9.5px; font-weight: 700; letter-spacing: .05em; }
+  .handshake-phase h3 { margin: 13px 0 6px; font-family: var(--serif); font-size: 16px; font-weight: 500; color: var(--slate); }
+  .handshake-phase p { font-size: 11px; line-height: 1.45; margin: 0; }
+  .handshake-phase .phase-steps { display: block; margin-top: 9px; color: var(--olive); font-family: var(--mono); font-size: 9px; font-weight: 700; }
+
+  /* ── handshake view switch ─────────────── */
+  .diagram-switch { margin: 8px 0 20px; }
+  .view-switch { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .view-switch .vs-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase;
+    color: var(--gray-500);
+  }
+  .segmented {
+    display: inline-flex; border: 1.5px solid var(--gray-300); border-radius: 999px; padding: 3px; background: #fff;
+  }
+  .segmented button {
+    appearance: none; border: none; background: none; cursor: pointer;
+    font-family: var(--sans); font-size: 12.5px; font-weight: 600; color: var(--gray-500);
+    padding: 7px 18px; border-radius: 999px; transition: background 140ms, color 140ms;
+  }
+  .segmented button:hover { color: var(--slate); }
+  .segmented button.on { background: var(--slate); color: var(--text-on-dark); }
+  .diagram-card { border: 1.5px solid var(--gray-300); border-radius: 14px; background: #fff; padding: 24px; overflow-x: auto; }
+  .tabpane { display: none; }
+  .tabpane.on { display: block; }
+
+  /* ── handshake layout: diagram + side panel ─── */
+  .handshake-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+  @media (max-width: 920px) { .handshake-layout { grid-template-columns: 1fr; } }
+
+  .playbar {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--gray-300); flex-wrap: wrap;
+  }
+  .playbar button {
+    appearance: none; border: 1.5px solid var(--gray-300); background: #fff; border-radius: 8px;
+    font-family: var(--mono); font-size: 12px; padding: 7px 12px; cursor: pointer; color: var(--slate);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .playbar button:hover { border-color: var(--clay); color: var(--clay); }
+  .playbar button#playBtn { min-width: 84px; justify-content: center; }
+  .playbar .stepcount {
+    margin-left: auto; font-family: var(--mono); font-size: 11.5px; color: var(--gray-500);
+  }
+  .playbar .stepcount b { color: var(--slate); }
+
+  .handshake-side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 24px; }
+  .side-panel {
+    border: 1.5px solid var(--gray-300); border-radius: 12px;
+    background: #fff; padding: 18px 20px;
+  }
+  .step-toc { border: 1.5px solid var(--gray-300); border-radius: 12px; background: #fff; padding: 14px 16px; }
+  .step-toc .toc-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--gray-500); margin-bottom: 8px;
+  }
+  .step-toc ol { list-style: none; display: flex; flex-direction: column; gap: 1px; }
+  .step-toc li {
+    display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px;
+    color: var(--gray-700); padding: 5px 6px; border-radius: 6px; cursor: pointer; line-height: 1.3;
+  }
+  .step-toc li:hover { background: var(--gray-150); }
+  .step-toc li.active { background: rgba(217,119,87,0.10); color: var(--slate); font-weight: 700; }
+  .step-toc li .toc-num { color: var(--gray-500); width: 16px; flex-shrink: 0; }
+  .step-toc li.active .toc-num { color: var(--clay); }
+  .step-toc li .toc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .side-panel .hint { font-family: var(--mono); font-size: 10.5px; color: var(--gray-500); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .side-panel .sp-actor {
+    display: inline-block; font-family: var(--mono); font-size: 10px; color: #fff; border-radius: 5px;
+    padding: 2px 8px; margin-bottom: 10px;
+  }
+  .side-panel h4 { font-family: var(--serif); font-weight: 500; font-size: 16px; color: var(--slate); margin-bottom: 10px; }
+  .side-panel p { font-size: 13px; margin-bottom: 10px; max-width: none; }
+  .side-panel pre {
+    font-family: var(--mono); font-size: 11px; background: var(--gray-150); border: 1px solid var(--gray-300);
+    border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; word-break: break-word; color: var(--slate); margin: 0;
+  }
+
+  /* active-step highlight, both views */
+  .flow .node { cursor: pointer; }
+  .flow .node.active rect.body { stroke: var(--clay); stroke-width: 2.25; }
+  .flow .node.active .accent { filter: brightness(1.15); }
+  .swim .msg { cursor: pointer; }
+  .swim .msg.active .self-box { stroke: var(--clay); stroke-width: 2.25; }
+  .swim .msg.active .arrow-line { stroke: var(--clay); stroke-width: 2.25; }
+  .swim .msg.active .arrow-label { fill: var(--clay); font-weight: 700; }
+  .swim .msg.active .self-title { fill: var(--clay); font-weight: 700; }
+
+  /* ── flow view ──────────────────────────  */
+  svg.flow { display: block; width: 100%; max-width: 660px; height: auto; margin: 0 auto; }
+  .flow text { font-family: var(--mono); font-size: 11.5px; fill: var(--slate); pointer-events: none; }
+  .flow .sub { font-size: 9.5px; fill: var(--gray-500); }
+  .flow .tag { font-size: 9px; font-weight: 700; letter-spacing: 0.04em; }
+  .flow .node rect.body { fill: #fff; stroke: var(--gray-300); stroke-width: 1.5; rx: 8; }
+  .flow .node rect.accent { rx: 0; }
+  .flow .node.term rect.body { fill: var(--gray-150); rx: 22; }
+  .flow .node.gate rect.body { stroke: var(--clay); stroke-width: 1.75; stroke-dasharray: 3 3; }
+  .flow .gatechip { fill: var(--clay); }
+  .flow .gatechip text { fill: #fff; font-size: 8.5px; font-weight: 700; }
+  .flow .edge { stroke: var(--gray-300); stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+
+  /* ── swimlane view ──────────────────────  */
+  svg.swim { display: block; width: 100%; min-width: 780px; height: auto; }
+  .swim text { font-family: var(--mono); fill: var(--slate); }
+  .swim .lane-label { font-size: 12px; font-weight: 700; text-anchor: middle; }
+  .swim .lifeline { stroke-width: 1.5; stroke-dasharray: 3 4; }
+  .swim .lifeline.ln-browser { stroke: var(--a-browser); }
+  .swim .lifeline.ln-core { stroke: var(--a-core); }
+  .swim .lifeline.ln-cl { stroke: var(--a-cl); }
+  .swim .lifeline.ln-api { stroke: var(--a-api); }
+  .swim .arrow-line { stroke: var(--gray-500); stroke-width: 1.5; marker-end: url(#swim-arrow); }
+  .swim .arrow-label { font-size: 10.5px; fill: var(--gray-700); }
+  .swim .arrow-sub { font-size: 8.5px; fill: var(--gray-500); }
+  .swim .self-box { fill: #fff; stroke: var(--gray-300); stroke-width: 1.5; rx: 8; }
+  .swim .self-box.gate { stroke: var(--clay); stroke-width: 1.75; stroke-dasharray: 3 3; }
+  .swim .self-title { font-size: 10.5px; text-anchor: middle; }
+  .swim .num { font-size: 9px; fill: #fff; font-weight: 700; }
+  .swim .numchip { fill: var(--slate); }
+  .swim .term-box { fill: var(--gray-150); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 18px; font-size: 11.5px; color: var(--gray-700); justify-content: center; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend .chip { width: 16px; height: 16px; border-radius: 4px; }
+
+  /* ── with/without toggle, inside each did-item ─── */
+  .seg { display: inline-flex; border: 1.5px solid var(--gray-300); border-radius: 8px; overflow: hidden; margin: 4px 0 12px; }
+  .seg button {
+    appearance: none; border: none; background: #fff; font-family: var(--mono); font-size: 11px;
+    padding: 7px 16px; cursor: pointer; color: var(--gray-500); letter-spacing: 0.03em;
+  }
+  .seg button + button { border-left: 1.5px solid var(--gray-300); }
+  .seg button.on.with { background: rgba(120,140,93,0.12); color: var(--olive); }
+  .seg button.on.without { background: rgba(176,74,63,0.10); color: var(--rust); }
+  .ww-state { display: none; font-size: 14px; padding: 12px 14px; border-radius: 8px; margin-bottom: 4px; max-width: 680px; }
+  .ww-state.show { display: block; }
+  .ww-state.with { background: rgba(120,140,93,0.08); border-left: 3px solid var(--olive); }
+  .ww-state.without { background: rgba(176,74,63,0.06); border-left: 3px solid var(--rust); }
+  .ssrf-context { max-width: 760px; margin: 16px 0 9px; font-size: 13px; color: var(--gray-700); }
+  .ssrf-proof-strip { display: grid; grid-template-columns: repeat(6, 1fr); max-width: 860px; margin: 0 0 18px; border: 1.5px solid var(--gray-300); border-radius: 9px; overflow: hidden; background: #fff; }
+  .ssrf-proof { padding: 11px 10px; border-right: 1px solid var(--gray-300); }
+  .ssrf-proof:last-child { border-right: 0; }
+  .ssrf-proof b { display: block; color: var(--slate); font-size: 10.5px; margin-bottom: 3px; }
+  .ssrf-proof span { display: block; color: var(--gray-500); font-size: 9px; line-height: 1.35; }
+
+  /* ── site entitlement ─────────────────── */
+  .split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; align-items: start; margin: 18px 0; }
+  .split > * { min-width: 0; }
+  @media (max-width: 820px) { .split { grid-template-columns: 1fr; } }
+  .entitlement-lifecycle { display: grid; grid-template-columns: repeat(5, 1fr); margin: 22px 0 0; border: 1.5px solid var(--gray-300); border-radius: 10px; overflow: hidden; background: #fff; }
+  .entitlement-step { min-height: 135px; padding: 14px; border-right: 1px solid var(--gray-300); }
+  .entitlement-step:last-child { border-right: 0; }
+  .entitlement-step.stop { background: rgba(217,119,87,0.10); }
+  .entitlement-step.offboard { background: var(--slate); color: var(--text-on-dark); }
+  .entitlement-step .state-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--olive); margin-bottom: 8px; }
+  .entitlement-step.stop .state-dot { background: var(--clay); }
+  .entitlement-step.offboard .state-dot { background: var(--oat); }
+  .entitlement-step b { display: block; color: var(--slate); font-size: 12px; margin-bottom: 5px; }
+  .entitlement-step.offboard b { color: var(--text-on-dark); }
+  .entitlement-step p { margin: 0; color: var(--gray-500); font-size: 10.5px; line-height: 1.45; }
+  .entitlement-step.offboard p { color: var(--muted-on-dark); }
+  .entitlement-enforcement { display: grid; grid-template-columns: 120px 1fr; margin-top: 12px; border: 1.5px solid var(--gray-300); border-radius: 9px; overflow: hidden; }
+  .entitlement-enforcement .enforcer { padding: 10px 12px; background: var(--gray-150); color: var(--slate); font-family: var(--mono); font-size: 10px; font-weight: 700; border-bottom: 1px solid var(--gray-300); }
+  .entitlement-enforcement .checks { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; background: #fff; border-bottom: 1px solid var(--gray-300); }
+  .entitlement-enforcement .enforcer:nth-last-child(2), .entitlement-enforcement .checks:last-child { border-bottom: 0; }
+  .entitlement-enforcement .checks span { padding: 4px 7px; border-radius: 5px; background: rgba(120,140,93,0.10); color: #4f613a; font-size: 10.5px; }
+  .entitlement-boundary { margin: 10px 0 22px; color: var(--gray-500); font-size: 11px; }
+
+  /* ── assurance and trade-offs ───────────  */
+  .assurance-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 16px; }
+  .assurance-item { border-left: 4px solid var(--olive); background: rgba(120,140,93,0.09); padding: 13px 14px; }
+  .assurance-item b { display: block; color: var(--slate); font-size: 12px; margin-bottom: 4px; }
+  .assurance-item span { display: block; color: var(--gray-700); font-size: 10.5px; line-height: 1.45; }
+  .tradeoff-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--gray-300); border-radius: 10px; overflow: hidden; background: #fff; }
+  .tradeoff-part { padding: 18px; }
+  .tradeoff-part + .tradeoff-part { border-left: 1px solid var(--gray-300); }
+  .tradeoff-part h3 { margin-bottom: 10px; font-family: var(--serif); font-size: 18px; font-weight: 500; color: var(--slate); }
+  .tradeoff-part ul { margin: 0; padding-left: 17px; }
+  .tradeoff-part li { margin-bottom: 7px; font-size: 12.5px; }
+  .closing-statement { margin-top: 16px; padding: 23px 25px; background: var(--slate); color: var(--text-on-dark); }
+  .closing-statement .label { color: var(--op-lime); font-family: var(--sans); font-size: 9.5px; letter-spacing: .07em; text-transform: uppercase; }
+  .closing-statement p { max-width: 780px; margin: 9px 0 0; color: var(--text-on-dark); font-family: var(--serif); font-size: 23px; line-height: 1.25; }
+
+  /* ── cast of characters ─────────────────  */
+  .cast-intro { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-500); margin: 28px 0 10px; }
+  .cast-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+  @media (max-width: 560px) { .cast-strip { grid-template-columns: 1fr; } }
+  .cast-chip {
+    display: flex; align-items: center; gap: 9px; border: 1.5px solid var(--gray-300);
+    border-radius: 10px; background: #fff; padding: 9px 13px;
+  }
+  .cast-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .cast-chip .cname { font-family: var(--serif); font-size: 13.5px; color: var(--slate); }
+  .cast-chip .crole { font-size: 11.5px; color: var(--gray-500); }
+
+  /* small actor tag, reused on did-items and elsewhere */
+  .actor-tags { display: flex; gap: 6px; margin-bottom: 10px; }
+  .actor-tag {
+    display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.03em; border-radius: 5px; padding: 3px 9px; color: #fff;
+  }
+  .actor-tag i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.85); display: inline-block; }
+
+  /* ── entitlement access matrix ─────────  */
+  table.matrix { border-collapse: collapse; width: 100%; max-width: 460px; font-size: 13px; margin: 10px 0 16px; }
+  table.matrix th, table.matrix td { border: 1px solid var(--gray-300); padding: 8px 12px; text-align: left; }
+  table.matrix th { background: var(--gray-150); font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gray-700); }
+  table.matrix td.center { text-align: center; font-size: 15px; }
+  table.matrix td.yes { color: var(--olive); }
+  table.matrix td.no { color: var(--rust); }
+  table.matrix tr.emph td { font-weight: 600; background: rgba(120,140,93,0.06); }
+
+  @media (max-width: 760px) {
+    .gate-taxonomy, .tradeoff-grid { grid-template-columns: 1fr; }
+    .tradeoff-part + .tradeoff-part { border-left: 0; border-top: 1px solid var(--gray-300); }
+    .custody-rail, .handshake-phases, .entitlement-lifecycle, .ssrf-proof-strip, .assurance-grid { grid-template-columns: 1fr 1fr; }
+    .custody-item, .handshake-phase, .entitlement-step, .ssrf-proof { border-bottom: 1px solid var(--gray-300); }
+  }
+  @media (max-width: 520px) {
+    .custody-rail, .handshake-phases, .entitlement-lifecycle, .ssrf-proof-strip, .assurance-grid { grid-template-columns: 1fr; }
+    .custody-item, .custody-item:first-child, .custody-item:last-child { border: 1.5px solid var(--gray-300); border-bottom: 0; border-radius: 0; min-height: auto; }
+    .custody-item:first-child { border-radius: 10px 10px 0 0; }
+    .custody-item:last-child { border-bottom: 1.5px solid var(--gray-300); border-radius: 0 0 10px 10px; }
+    .custody-item:not(:last-child)::after { content: "v"; right: 13px; top: auto; bottom: -11px; transform: none; }
+    .handshake-phase, .entitlement-step, .ssrf-proof { border-right: 0; }
+    .entitlement-enforcement { grid-template-columns: 1fr; }
+    .entitlement-enforcement .enforcer { border-bottom: 0; }
+  }
+</style>
+</head>
+<body data-page="01">
+<div class="top-header" id="top-header"></div>
+<div class="page">
+
+  <nav>
+    <div class="label">On this page</div>
+    <a href="#tldr">Overview</a>
+    <a href="#gates">The Three-Gate Model</a>
+    <a href="#protocol">The Handshake</a>
+    <a href="#did">Defence In Depth</a>
+    <a href="#did1" class="l2">Verify before anything</a>
+    <a href="#did2" class="l2">Provider credential stays backend-only</a>
+    <a href="#did3" class="l2">Multi-issuer, multi-key trust</a>
+    <a href="#did4" class="l2">Encrypted &amp; identity-bound</a>
+    <a href="#did5" class="l2">Authority bounded by schema</a>
+    <a href="#entitlement">Site Entitlement</a>
+    <a href="#nongoals">Guarantees &amp; Trade-Offs</a>
+    <div class="sidebar-index" id="sidebar-index"></div>
+  </nav>
+
+  <main>
+    <header>
+      <div class="breadcrumb"><a href="index.html">SP Sync Engine</a><span class="separator">/</span><span>Security &amp; Authority</span></div>
+      <h1>Security &amp; Authority</h1>
+      <p class="subtitle">One click for the user. No implicit trust underneath.</p>
+      <div class="tldr" id="tldr">
+        <b>Open in Analytics</b> looks like a simple handoff, but it activates a fourteen-step protocol across four
+        actors. Trust is split, the SP provider credential stays off the browser, stored provider authority is
+        KMS-encrypted and identity-bound, and three independent gates must align before customer data can move. The
+        result is a connection in which no single handoff, credential or configuration value can authorise the
+        complete flow alone.
+      </div>
+    </header>
+
+    <div class="cast-intro">Four actors, referenced by colour throughout this document</div>
+    <div class="cast-strip">
+      <div class="cast-chip"><span class="cast-dot" style="background:var(--a-browser)"></span><div><div class="cname">Browser</div><div class="crole">relays the handoff, receives the CL session</div></div></div>
+      <div class="cast-chip"><span class="cast-dot" style="background:var(--a-core)"></span><div><div class="cname">SP Core / Hive</div><div class="crole">holds the signing seed, requests links</div></div></div>
+      <div class="cast-chip"><span class="cast-dot" style="background:var(--a-cl)"></span><div><div class="cname">Converlens Edge</div><div class="crole">verifies, encrypts, owns the session</div></div></div>
+      <div class="cast-chip"><span class="cast-dot" style="background:var(--a-api)"></span><div><div class="cname">SP API</div><div class="crole">brokers the data credential, checks entitlement</div></div></div>
+    </div>
+
+    <div class="cast-intro">Authority is useful precisely because it is incomplete in every one place</div>
+    <div class="authority-model">
+      <table>
+        <caption>Each actor receives enough authority to perform its role, but not enough to complete the flow alone.</caption>
+        <thead><tr><th>Actor</th><th>May authorise or issue</th><th>May hold</th><th>Explicitly cannot</th></tr></thead>
+        <tbody>
+          <tr><td>Browser</td><td>Redeem one handoff</td><td>Handoff, then CL session</td><td class="limit">Hold the SP provider credential or signing seed</td></tr>
+          <tr><td>SP Core / Hive</td><td>Sign initiation; request a provider credential</td><td>Signing seed, exchange code, relayed handoff</td><td class="limit">Create the CL session or decide CL mutations</td></tr>
+          <tr><td>SP API</td><td>Issue, confirm and revoke provider credentials</td><td>Credential hash and Site entitlement</td><td class="limit">Create the CL session or control destination mapping</td></tr>
+          <tr><td>Converlens Edge</td><td>Accept signed initiation; create handoff and CL session</td><td>KMS ciphertext and connector identity</td><td class="limit">Issue SP authority or define SP source truth</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="gates"><span class="n">01</span>The Three-Gate Model</h2>
+    <p class="dek">Social Point capability and a given customer's access to it are deliberately separated into three
+      activation gates of different speed, scope and blast radius. All three must be simultaneously true; none of
+      them can compensate for an absent one. The handshake then applies request-time hard gates before work may
+      proceed.</p>
+
+    <div class="gate-taxonomy">
+      <div><span class="kind">Three activation gates</span><b>Can this Site participate?</b><p>Capability must be deployed, cluster trust configured and the Site currently entitled.</p></div>
+      <div class="runtime"><span class="kind">Protocol hard gates</span><b>May this request proceed?</b><p>Signed initiation, actor eligibility and current Site entitlement are checked at the boundaries that use them.</p></div>
+    </div>
+
+    <div class="gates">
+      <div class="gate-card g1">
+        <div class="idx">GATE 1 · everywhere</div>
+        <h4>Generic capability</h4>
+        <p>Connector code ships to every Converlens, Social Point API and Hive deployment, dark. It is inert by
+          default, safe to deploy without a single cluster or customer being able to use it.</p>
+        <div class="where">CL · SP API · SP Core · SP GitOps</div>
+      </div>
+      <div class="gate-card g2">
+        <div class="idx">GATE 2 · per deployment</div>
+        <h4>Cluster trust</h4>
+        <p>One convention-driven Vault record (the Hive signing key) plus per-cluster Git config make one API/Hive
+          deployment able to participate at all. The signing seed is the only new integration-specific secret that
+          operators configure for cluster trust.</p>
+        <div class="where"><code>&lt;cluster&gt;/data/&lt;env&gt;/converlens</code></div>
+      </div>
+      <div class="gate-card g3">
+        <div class="idx">GATE 3 · per customer</div>
+        <h4>Site entitlement</h4>
+        <p>A single audited boolean, restricted to central operations staff, per Social Point Site. This is the fast,
+          reversible, day-to-day lever; cluster-wide activation deliberately is not.</p>
+        <div class="where"><code>ConfigOverrides.hive.converlens.enabled</code></div>
+      </div>
+    </div>
+
+    <div class="gate-toggle-row">
+      <div class="gate-toggle-cell">
+        <div class="gtc-label">Generic Capability</div>
+        <div class="gtc-control">
+          <label class="switch"><input type="checkbox" id="g1" checked><span class="slider"></span></label>
+          <span class="gate-state-label on" id="g1label">ENABLED</span>
+        </div>
+      </div>
+      <div class="gate-toggle-cell">
+        <div class="gtc-label">Cluster Trust</div>
+        <div class="gtc-control">
+          <label class="switch"><input type="checkbox" id="g2" checked><span class="slider"></span></label>
+          <span class="gate-state-label on" id="g2label">ENABLED</span>
+        </div>
+      </div>
+      <div class="gate-toggle-cell">
+        <div class="gtc-label">Site Entitlement</div>
+        <div class="gtc-control">
+          <label class="switch"><input type="checkbox" id="g3" checked><span class="slider"></span></label>
+          <span class="gate-state-label on" id="g3label">ENABLED</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gate-result allowed" id="gateResult">
+      <span>✓</span>
+      <span><b class="allow">Open in Analytics → ALLOWED.</b> All three gates are open. Flip one off above.</span>
+    </div>
+
+    <div class="quote">
+      “Only the Hive signing seed adds a new operator-configured secret to cluster trust. The issuer, edge, audience,
+      endpoint URLs, key ID and public key remain plain, reviewable Git configuration.”
+    </div>
+    <p style="font-size:13.5px; color:var(--gray-500); max-width:720px;">That split is what keeps the secret surface
+      small without treating security-critical configuration as secret. The signing seed lives behind a purpose-built
+      secret store; <code>issuer</code>, <code>edge</code>, <code>audience</code>, endpoint URLs, key ID and public key
+      remain reviewable in Git. The runtime protocol still creates or uses protected bearer material, including the
+      exchange code, provider credential, single-use handoff and resulting CL session.</p>
+
+    <h2 id="protocol"><span class="n">02</span>The Handshake</h2>
+    <p class="dek">One click in Social Point, <b>Open in Analytics</b>, triggers fourteen steps across four actors.
+      The SP provider credential remains backend-to-backend throughout. SP Core relays a five-minute, single-use
+      handoff to the browser, but never receives the CL session created when the browser redeems it.</p>
+
+    <div class="custody-title">Credential custody across the protocol</div>
+    <div class="custody-rail">
+      <div class="custody-item"><b>Signing seed</b><span>Held by SP Core</span></div>
+      <div class="custody-item"><b>Pending provider credential</b><span>Issued by SP API, relayed backend-to-backend</span></div>
+      <div class="custody-item"><b>KMS ciphertext</b><span>Persisted by CL, bound to connector identity</span></div>
+      <div class="custody-item"><b>Single-use handoff</b><span>Relayed through SP Core and the browser</span></div>
+      <div class="custody-item"><b>CL session</b><span>Returned directly by CL after redemption</span></div>
+    </div>
+
+    <div class="handshake-phases">
+      <div class="handshake-phase"><span class="phase-num">PHASE 01</span><h3>Authorise and sign</h3><p>Site entitlement permits initiation; Core signs the exact request.</p><span class="phase-steps">STEPS 1-3</span></div>
+      <div class="handshake-phase"><span class="phase-num">PHASE 02</span><h3>Verify and issue</h3><p>CL verifies before network activity; SP API issues pending authority.</p><span class="phase-steps">STEPS 4-9</span></div>
+      <div class="handshake-phase"><span class="phase-num">PHASE 03</span><h3>Encrypt and activate</h3><p>CL binds the credential to identity before SP API activates it.</p><span class="phase-steps">STEPS 10-11</span></div>
+      <div class="handshake-phase"><span class="phase-num">PHASE 04</span><h3>Hand off and establish</h3><p>A single-use handoff becomes a CL session directly at CL.</p><span class="phase-steps">STEPS 12-14</span></div>
+    </div>
+
+    <div class="diagram-switch">
+      <div class="view-switch">
+        <span class="vs-label">Show as</span>
+        <div class="segmented" data-tabs>
+          <button class="on" data-t="0">Flow</button>
+          <button data-t="1">Swimlanes</button>
+        </div>
+      </div>
+
+      <div class="handshake-layout">
+      <div class="diagram-card">
+        <div class="playbar">
+          <button id="prevBtn" type="button">◂ Prev</button>
+          <button id="playBtn" type="button">▶ Play</button>
+          <button id="nextBtn" type="button">Next ▸</button>
+          <span class="stepcount">Step <b id="stepNum">1</b> / 14</span>
+        </div>
+        <!-- ═══════ Flow ═══════ -->
+        <div class="tabpane on" data-view="flow">
+          <svg class="flow" viewBox="0 0 640 1090">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#D1CFC5"/>
+              </marker>
+            </defs>
+
+            <!-- connecting edges -->
+            <path class="edge" d="M320,64 L320,78"/>
+            <path class="edge" d="M320,142 L320,156"/>
+            <path class="edge" d="M320,220 L320,234"/>
+            <path class="edge" d="M320,298 L320,312"/>
+            <path class="edge" d="M320,376 L320,390"/>
+            <path class="edge" d="M320,454 L320,468"/>
+            <path class="edge" d="M320,532 L320,546"/>
+            <path class="edge" d="M320,610 L320,624"/>
+            <path class="edge" d="M320,688 L320,702"/>
+            <path class="edge" d="M320,766 L320,780"/>
+            <path class="edge" d="M320,844 L320,858"/>
+            <path class="edge" d="M320,922 L320,936"/>
+            <path class="edge" d="M320,1000 L320,1014"/>
+
+            <!-- 1 Browser -->
+            <g class="node" data-key="m1">
+              <rect class="body" x="40" y="0" width="560" height="64"/>
+              <rect class="accent" x="40" y="0" width="5" height="64" fill="var(--a-browser)"/>
+              <text class="tag" x="56" y="20" fill="var(--a-browser)">BROWSER</text>
+              <text x="56" y="38">1 · User clicks “Open in Analytics”</text>
+              <text class="sub" x="56" y="53">the only human-initiated step in the whole exchange</text>
+            </g>
+
+            <!-- 2 SP Core -->
+            <g class="node" data-key="m2">
+              <rect class="body" x="40" y="78" width="560" height="64"/>
+              <rect class="accent" x="40" y="78" width="5" height="64" fill="var(--a-core)"/>
+              <text class="tag" x="56" y="98" fill="var(--a-core)">SP CORE</text>
+              <text x="56" y="116">2 · Checks Site entitlement, signs an Ed25519 “spinit1” token</text>
+              <text class="sub" x="56" y="131">OpenInAnalyticsAction.php:70 · Spinit1Codec.php:35</text>
+            </g>
+
+            <!-- 3 -->
+            <g class="node" data-key="m3">
+              <rect class="body" x="40" y="156" width="560" height="64"/>
+              <rect class="accent" x="40" y="156" width="5" height="64" fill="var(--a-core)"/>
+              <text class="tag" x="56" y="176" fill="var(--a-core)">SP CORE → CL</text>
+              <text x="56" y="194">3 · POSTs the signed token to CL's init endpoint</text>
+              <text class="sub" x="56" y="209">LinkInitClient.php:29</text>
+            </g>
+
+            <!-- 4 GATE -->
+            <g class="node gate" data-key="m4">
+              <rect class="body" x="40" y="234" width="560" height="64"/>
+              <rect class="accent" x="40" y="234" width="5" height="64" fill="var(--a-cl)"/>
+              <text class="tag" x="56" y="254" fill="var(--a-cl)">CL EDGE</text>
+              <text x="56" y="272">4 · Verifies the signature, before any DNS or network call</text>
+              <text class="sub" x="56" y="287">linkInitToken.ts · linkWorkflow.ts:121</text>
+              <g class="gatechip"><rect x="500" y="246" width="86" height="18" rx="9"/><text x="543" y="258" text-anchor="middle">HARD GATE</text></g>
+            </g>
+
+            <!-- 5 -->
+            <g class="node" data-key="m5">
+              <rect class="body" x="40" y="312" width="560" height="64"/>
+              <rect class="accent" x="40" y="312" width="5" height="64" fill="var(--a-cl)"/>
+              <text class="tag" x="56" y="332" fill="var(--a-cl)">CL → SP CORE</text>
+              <text x="56" y="350">5 · Calls back over IP-pinned HTTPS transport</text>
+              <text class="sub" x="56" y="365">linkCallbackTransport.ts:361 · fixed path /ccm/system/converlens/v1/link-exchange</text>
+            </g>
+
+            <!-- 6 -->
+            <g class="node" data-key="m6">
+              <rect class="body" x="40" y="390" width="560" height="64"/>
+              <rect class="accent" x="40" y="390" width="5" height="64" fill="var(--a-core)"/>
+              <text class="tag" x="56" y="410" fill="var(--a-core)">SP CORE → SP API</text>
+              <text x="56" y="428">6 · Requests a data credential, over Core's own JWT channel</text>
+              <text class="sub" x="56" y="443">ProviderCredentialClient.php:51</text>
+            </g>
+
+            <!-- 7 GATE -->
+            <g class="node gate" data-key="m7">
+              <rect class="body" x="40" y="468" width="560" height="64"/>
+              <rect class="accent" x="40" y="468" width="5" height="64" fill="var(--a-api)"/>
+              <text class="tag" x="56" y="488" fill="var(--a-api)">SP API</text>
+              <text x="56" y="506">7 · Checks Site entitlement + actor eligibility, issues a pending credential</text>
+              <text class="sub" x="56" y="521">ProviderCredentialRouteDispatcher.php:61</text>
+              <g class="gatechip"><rect x="500" y="480" width="86" height="18" rx="9"/><text x="543" y="492" text-anchor="middle">HARD GATE</text></g>
+            </g>
+
+            <!-- 8 -->
+            <g class="node" data-key="m8">
+              <rect class="body" x="40" y="546" width="560" height="64"/>
+              <rect class="accent" x="40" y="546" width="5" height="64" fill="var(--a-api)"/>
+              <text class="tag" x="56" y="566" fill="var(--a-api)">SP API → SP CORE</text>
+              <text x="56" y="584">8 · Returns the pending credential</text>
+              <text class="sub" x="56" y="599">still pending, not yet confirmed as active</text>
+            </g>
+
+            <!-- 9 -->
+            <g class="node" data-key="m9">
+              <rect class="body" x="40" y="624" width="560" height="64"/>
+              <rect class="accent" x="40" y="624" width="5" height="64" fill="var(--a-core)"/>
+              <text class="tag" x="56" y="644" fill="var(--a-core)">SP CORE → CL</text>
+              <text x="56" y="662">9 · Returns the credential inside the callback response</text>
+              <text class="sub" x="56" y="677">LinkExchangeCallback.php:81</text>
+            </g>
+
+            <!-- 10 -->
+            <g class="node" data-key="m10">
+              <rect class="body" x="40" y="702" width="560" height="64"/>
+              <rect class="accent" x="40" y="702" width="5" height="64" fill="var(--a-cl)"/>
+              <text class="tag" x="56" y="722" fill="var(--a-cl)">CL EDGE</text>
+              <text x="56" y="740">10 · Encrypts it with KMS, bound to connector identity</text>
+              <text class="sub" x="56" y="755">credentialBoundary.ts</text>
+            </g>
+
+            <!-- 11 -->
+            <g class="node" data-key="m11">
+              <rect class="body" x="40" y="780" width="560" height="64"/>
+              <rect class="accent" x="40" y="780" width="5" height="64" fill="var(--a-cl)"/>
+              <text class="tag" x="56" y="800" fill="var(--a-cl)">CL → SP API</text>
+              <text x="56" y="818">11 · Confirms the credential: SP API promotes pending → active</text>
+              <text class="sub" x="56" y="833">credentialLifecycle.ts · ProviderCredentialService.php:82</text>
+            </g>
+
+            <!-- 12 -->
+            <g class="node" data-key="m12">
+              <rect class="body" x="40" y="858" width="560" height="64"/>
+              <rect class="accent" x="40" y="858" width="5" height="64" fill="var(--a-cl)"/>
+              <text class="tag" x="56" y="878" fill="var(--a-cl)">CL → SP CORE</text>
+              <text x="56" y="896">12 · Relays success: a single-use handoff + bootstrap URL</text>
+              <text class="sub" x="56" y="911">handoffService.ts</text>
+            </g>
+
+            <!-- 13 -->
+            <g class="node" data-key="m13">
+              <rect class="body" x="40" y="936" width="560" height="64"/>
+              <rect class="accent" x="40" y="936" width="5" height="64" fill="var(--a-core)"/>
+              <text class="tag" x="56" y="956" fill="var(--a-core)">SP CORE → BROWSER</text>
+              <text x="56" y="974">13 · Relays success to the browser</text>
+              <text class="sub" x="56" y="989">LinkRelay.php: CSP-pinned to one inline script</text>
+            </g>
+
+            <!-- 14 TERM -->
+            <g class="node term" data-key="m14">
+              <rect class="body" x="40" y="1014" width="560" height="64"/>
+              <rect class="accent" x="40" y="1014" width="5" height="64" fill="var(--a-browser)"/>
+              <text class="tag" x="56" y="1034" fill="var(--a-browser)">BROWSER → CL</text>
+              <text x="56" y="1052">14 · Scrubs the fragment, exchanges it for the real session</text>
+              <text class="sub" x="56" y="1067">socialpoint-link.ts: SP never receives the resulting CL session</text>
+            </g>
+          </svg>
+
+          <div class="legend">
+            <span><i class="chip" style="background:var(--a-browser)"></i>Browser</span>
+            <span><i class="chip" style="background:var(--a-core)"></i>SP Core / Hive</span>
+            <span><i class="chip" style="background:var(--a-cl)"></i>Converlens Edge</span>
+            <span><i class="chip" style="background:var(--a-api)"></i>SP API</span>
+            <span><i class="chip" style="background:var(--clay);"></i>Hard gate: request dies here or it doesn't proceed</span>
+          </div>
+        </div>
+
+        <!-- ═══════ Swimlanes ═══════ -->
+        <div class="tabpane" data-view="swim">
+          <div class="canvas-scroll" style="overflow-x:auto;">
+            <svg class="swim" viewBox="0 0 900 900">
+              <defs>
+                <marker id="swim-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#87867F"/>
+                </marker>
+              </defs>
+
+              <rect x="15" y="8" width="170" height="38" rx="8" fill="#fff" stroke="var(--a-browser)" stroke-width="1.5"/>
+              <text class="lane-label" x="100" y="32" fill="var(--a-browser)">BROWSER</text>
+              <rect x="255" y="8" width="170" height="38" rx="8" fill="#fff" stroke="var(--a-core)" stroke-width="1.5"/>
+              <text class="lane-label" x="340" y="32" fill="var(--a-core)">SP CORE</text>
+              <rect x="495" y="8" width="170" height="38" rx="8" fill="#fff" stroke="var(--a-cl)" stroke-width="1.5"/>
+              <text class="lane-label" x="580" y="32" fill="var(--a-cl)">CL EDGE</text>
+              <rect x="735" y="8" width="170" height="38" rx="8" fill="#fff" stroke="var(--a-api)" stroke-width="1.5"/>
+              <text class="lane-label" x="820" y="32" fill="var(--a-api)">SP API</text>
+
+              <line class="lifeline ln-browser" x1="100" y1="50" x2="100" y2="870"/>
+              <line class="lifeline ln-core" x1="340" y1="50" x2="340" y2="870"/>
+              <line class="lifeline ln-cl" x1="580" y1="50" x2="580" y2="870"/>
+              <line class="lifeline ln-api" x1="820" y1="50" x2="820" y2="870"/>
+
+              <g class="msg" data-key="m1">
+                <rect class="self-box" x="20" y="80" width="160" height="42"/>
+                <circle class="numchip" cx="30" cy="90" r="9"/><text class="num" x="30" y="93" text-anchor="middle">1</text>
+                <text class="self-title" x="100" y="100">Clicks “Open in</text>
+                <text class="self-title" x="100" y="111">Analytics”</text>
+              </g>
+
+              <g class="msg" data-key="m2">
+                <rect class="self-box" x="260" y="138" width="160" height="46"/>
+                <circle class="numchip" cx="270" cy="148" r="9"/><text class="num" x="270" y="151" text-anchor="middle">2</text>
+                <text class="self-title" x="340" y="158">Checks entitlement,</text>
+                <text class="self-title" x="340" y="170">signs Ed25519 token</text>
+              </g>
+
+              <g class="msg" data-key="m3">
+                <line class="arrow-line" x1="340" y1="206" x2="573" y2="206"/>
+                <text class="arrow-label" x="345" y="198">3 · POSTs signed init token</text>
+                <text class="arrow-sub" x="345" y="216">LinkInitClient.php:29</text>
+              </g>
+
+              <g class="msg gate" data-key="m4">
+                <rect class="self-box gate" x="500" y="240" width="160" height="46"/>
+                <circle class="numchip" cx="510" cy="250" r="9"/><text class="num" x="510" y="253" text-anchor="middle">4</text>
+                <text class="self-title" x="580" y="260">Verifies signature:</text>
+                <text class="self-title" x="580" y="272">before any DNS/HTTP</text>
+              </g>
+
+              <g class="msg" data-key="m5">
+                <line class="arrow-line" x1="580" y1="322" x2="347" y2="322"/>
+                <text class="arrow-label" x="345" y="314">5 · Calls back (IP-pinned HTTPS)</text>
+              </g>
+
+              <g class="msg" data-key="m6">
+                <line class="arrow-line" x1="340" y1="380" x2="813" y2="380"/>
+                <text class="arrow-label" x="345" y="372">6 · Requests credential over Core's JWT</text>
+              </g>
+
+              <g class="msg gate" data-key="m7">
+                <rect class="self-box gate" x="740" y="414" width="160" height="46"/>
+                <circle class="numchip" cx="750" cy="424" r="9"/><text class="num" x="750" y="427" text-anchor="middle">7</text>
+                <text class="self-title" x="820" y="434">Checks entitlement,</text>
+                <text class="self-title" x="820" y="446">issues pending credential</text>
+              </g>
+
+              <g class="msg" data-key="m8">
+                <line class="arrow-line" x1="820" y1="496" x2="347" y2="496"/>
+                <text class="arrow-label" x="345" y="488">8 · Returns pending credential</text>
+              </g>
+
+              <g class="msg" data-key="m9">
+                <line class="arrow-line" x1="340" y1="550" x2="573" y2="550"/>
+                <text class="arrow-label" x="345" y="542">9 · Returns credential in callback response</text>
+                <text class="arrow-sub" x="345" y="560">LinkExchangeCallback.php:81</text>
+              </g>
+
+              <g class="msg" data-key="m10">
+                <rect class="self-box" x="500" y="592" width="160" height="46"/>
+                <circle class="numchip" cx="510" cy="602" r="9"/><text class="num" x="510" y="605" text-anchor="middle">10</text>
+                <text class="self-title" x="580" y="612">Encrypts credential:</text>
+                <text class="self-title" x="580" y="624">KMS + identity-bound AAD</text>
+              </g>
+
+              <g class="msg" data-key="m11">
+                <line class="arrow-line" x1="580" y1="664" x2="813" y2="664"/>
+                <text class="arrow-label" x="585" y="656">11 · Confirms credential (pending → active)</text>
+              </g>
+
+              <g class="msg" data-key="m12">
+                <line class="arrow-line" x1="580" y1="712" x2="347" y2="712"/>
+                <text class="arrow-label" x="345" y="704">12 · Relays success (handoff + bootstrap URL)</text>
+              </g>
+
+              <g class="msg" data-key="m13">
+                <line class="arrow-line" x1="340" y1="760" x2="107" y2="760"/>
+                <text class="arrow-label" x="105" y="752">13 · Relays success (CSP-pinned script)</text>
+              </g>
+
+              <g class="msg" data-key="m14">
+                <line class="arrow-line" x1="100" y1="812" x2="573" y2="812"/>
+                <text class="arrow-label" x="105" y="804">14 · Exchanges handoff for the real session</text>
+                <rect class="self-box term-box" x="20" y="826" width="160" height="34"/>
+                <text class="self-title" x="100" y="847" fill="var(--olive)">SP never receives the CL session</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="legend">
+            <span><i class="chip" style="background:var(--a-browser)"></i>Browser</span>
+            <span><i class="chip" style="background:var(--a-core)"></i>SP Core / Hive</span>
+            <span><i class="chip" style="background:var(--a-cl)"></i>Converlens Edge</span>
+            <span><i class="chip" style="background:var(--a-api)"></i>SP API</span>
+            <span><i class="chip" style="background:var(--clay);"></i>Hard gate: request dies here or it doesn't proceed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="handshake-side">
+        <div class="side-panel" id="sidePanel">
+          <div class="hint">Click a step, or use play / prev / next</div>
+          <span class="sp-actor" id="sp-actor">BROWSER</span>
+          <h4 id="sp-title">User clicks "Open in Analytics"</h4>
+          <p id="sp-body">The only human-initiated step in the whole exchange.</p>
+          <pre id="sp-code" style="display:none;"></pre>
+        </div>
+
+        <div class="step-toc" id="stepToc">
+          <div class="toc-label">All 14 steps</div>
+          <ol>
+            <li data-key="m1"><span class="toc-num">1</span><span class="toc-dot" style="background:var(--a-browser)"></span>User clicks "Open in Analytics"</li>
+            <li data-key="m2"><span class="toc-num">2</span><span class="toc-dot" style="background:var(--a-core)"></span>Checks entitlement, signs token</li>
+            <li data-key="m3"><span class="toc-num">3</span><span class="toc-dot" style="background:var(--a-core)"></span>POSTs signed init token</li>
+            <li data-key="m4"><span class="toc-num">4</span><span class="toc-dot" style="background:var(--a-cl)"></span>Verifies signature, gate</li>
+            <li data-key="m5"><span class="toc-num">5</span><span class="toc-dot" style="background:var(--a-cl)"></span>Calls back (IP-pinned HTTPS)</li>
+            <li data-key="m6"><span class="toc-num">6</span><span class="toc-dot" style="background:var(--a-core)"></span>Requests credential</li>
+            <li data-key="m7"><span class="toc-num">7</span><span class="toc-dot" style="background:var(--a-api)"></span>Checks entitlement, issues credential, gate</li>
+            <li data-key="m8"><span class="toc-num">8</span><span class="toc-dot" style="background:var(--a-api)"></span>Returns pending credential</li>
+            <li data-key="m9"><span class="toc-num">9</span><span class="toc-dot" style="background:var(--a-core)"></span>Returns credential in callback</li>
+            <li data-key="m10"><span class="toc-num">10</span><span class="toc-dot" style="background:var(--a-cl)"></span>Encrypts credential (KMS + AAD)</li>
+            <li data-key="m11"><span class="toc-num">11</span><span class="toc-dot" style="background:var(--a-cl)"></span>Confirms credential</li>
+            <li data-key="m12"><span class="toc-num">12</span><span class="toc-dot" style="background:var(--a-cl)"></span>Relays single-use handoff</li>
+            <li data-key="m13"><span class="toc-num">13</span><span class="toc-dot" style="background:var(--a-core)"></span>Relays success to browser</li>
+            <li data-key="m14"><span class="toc-num">14</span><span class="toc-dot" style="background:var(--a-browser)"></span>Exchanges handoff for session</li>
+          </ol>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px; color:var(--gray-500); max-width:760px;">Two properties are structural, not incidental:
+      SP Core holds the signing seed but never touches customer data directly. It can only <i>request</i> a link.
+      SP API brokers the actual data credential per request and never sees CL's session. A compromise of any single
+      hop does not hand over the others.</p>
+
+    <h2 id="did"><span class="n">03</span>Defence In Depth</h2>
+    <p class="dek">Five mechanisms carry the actual weight of the handshake above. Each is backed by real code,
+      several by a regression test that fails the build if the guarantee regresses.</p>
+
+    <div class="did-item" id="did1">
+      <div class="num">01 · Ordering</div>
+      <div class="actor-tags"><span class="actor-tag" style="background:var(--a-cl)"><i></i>CL EDGE</span></div>
+      <h3>Verify before anything: not just before mutation, before <i>any</i> network activity</h3>
+      <p>The signature is checked before a single DNS lookup or outbound HTTP call happens. This closes the door
+        on unauthenticated probing of the callback path entirely. An attacker with a malformed token never gets
+        CL to reveal that a Core origin even resolves.</p>
+      <p class="ssrf-context"><b>Verification decides whether networking begins. The transport then constrains
+        exactly where it may go.</b> CL resolves the signed canonical origin and applies the complete callback
+        profile before accepting a response.</p>
+      <div class="ssrf-proof-strip">
+        <div class="ssrf-proof"><b>Public IPs only</b><span>Reject the complete DNS result otherwise</span></div>
+        <div class="ssrf-proof"><b>Fixed route</b><span>Canonical origin, path and port</span></div>
+        <div class="ssrf-proof"><b>IP pinned</b><span>Verify the connected remote address</span></div>
+        <div class="ssrf-proof"><b>TLS verified</b><span>Normal CA and hostname checks</span></div>
+        <div class="ssrf-proof"><b>No chaining</b><span>No redirects or retries</span></div>
+        <div class="ssrf-proof"><b>Bounded</b><span>Time and response-size limits</span></div>
+      </div>
+      <div class="seg" data-ww="did1">
+        <button class="with on" data-s="with">WITH THIS</button>
+        <button class="without" data-s="without">WITHOUT THIS</button>
+      </div>
+      <div class="ww-state with show" data-ww-panel="did1-with">The signature is checked first. A bad signature
+        never reaches the DNS resolver or the HTTP client at all.</div>
+      <div class="ww-state without" data-ww-panel="did1-without">A malformed or unsigned init request could reach
+        DNS and outbound HTTPS using unverified request data before anyone checks who's asking.</div>
+      <span class="where-tag">linkWorkflow.ts:121 completeSocialPointLinkInit()</span>
+      <pre>/**
+ * Completes the dormant init workflow. The caller must verify the token through
+ * this entry point so no callback DNS or mutable work can precede verification.
+ */
+<span class="hl">const payload = verifySocialPointLinkInitToken({ token, routeEdge, config, now })</span>
+<span class="cm">// only after this line: site-lock acquisition, then dependencies.exchangeCallback(...)</span></pre>
+      <span class="where-tag">linkCallbackTransport.spec.ts:158</span>
+      <pre><span class="str">it('finishes signature verification before DNS or outbound work', ...)</span>
+<span class="cm">// tampers the signature, then asserts:</span>
+<span class="hl">expect(dependencies.resolve).not.toHaveBeenCalled()   // no DNS</span>
+<span class="hl">expect(dependencies.request).not.toHaveBeenCalled()   // no HTTP</span></pre>
+      <div class="proves">✓ this is a committed, running regression test, not documentation intent</div>
+    </div>
+
+    <div class="did-item" id="did2">
+      <div class="num">02 · Blast radius</div>
+      <div class="actor-tags">
+        <span class="actor-tag" style="background:var(--a-cl)"><i></i>CL EDGE</span>
+        <span class="actor-tag" style="background:var(--a-browser)"><i></i>BROWSER</span>
+      </div>
+      <h3>The SP provider credential never reaches the browser</h3>
+      <p>SP Core receives and relays a 5-minute, single-use handoff, but never receives the resulting CL session.
+        The browser obtains the handoff through a URL <b>fragment</b>, which is excluded from the initial navigation
+        request and scrubbed from browser history <i>before the application bundle loads</i>. It then redeems the
+        handoff directly with CL. The relay page on Social Point's side is CSP-pinned to one exact inline script, so
+        nothing else can execute in that response.</p>
+      <div class="seg" data-ww="did2">
+        <button class="with on" data-s="with">WITH THIS</button>
+        <button class="without" data-s="without">WITHOUT THIS</button>
+      </div>
+      <div class="ww-state with show" data-ww-panel="did2-with">The browser receives only a short-lived handoff
+        from SP, scrubs it before the app loads, then redeems it directly with CL for the resulting session.</div>
+      <div class="ww-state without" data-ww-panel="did2-without">A long-lived credential riding through the browser
+        would land in browser history, proxy logs, and Referer headers, recoverable long after the click.</div>
+      <span class="where-tag">ui/socialpoint-link.html (inline, pre-bundle)</span>
+      <pre>let handoff =
+  <span class="hl">/^#handoff=(splink_[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048])$/</span>.exec(location.hash)?.[1]
+<span class="hl">history.replaceState(history.state, '', location.pathname + location.search)</span>
+<span class="cm">// scrub happens synchronously, before socialpoint-link-entry.js is injected</span></pre>
+      <span class="where-tag">handoffService.ts:20 createSocialPointHandoffMaterial()</span>
+      <pre>const tokenBytes = randomness.bytes()   <span class="cm">// 32 random bytes</span>
+const handoff = <span class="str">`splink_${base64url(tokenBytes)}`</span>
+<span class="hl">const tokenHash = sha256(tokenBytes)</span>
+<span class="cm">// only tokenHash is persisted, the plaintext value is returned once, never stored</span></pre>
+      <div class="proves">✓ CL mints the real session token only after this single-use value is redeemed server-side</div>
+    </div>
+
+    <div class="did-item" id="did3">
+      <div class="num">03 · Rotation without downtime</div>
+      <div class="actor-tags"><span class="actor-tag" style="background:var(--a-cl)"><i></i>CL EDGE</span></div>
+      <h3>Multi-issuer, multi-key trust</h3>
+      <p>Converlens supports multiple issuers, each with its own provider origin and a non-empty set of unique,
+        overlapping public keys; the schema imposes no fixed maximum on either array. Verification looks up issuer
+        first, key ID second. There's no "previous key" slot, live discovery or autonomous rotation service.
+        Rotation is an ordered process: publish the new public key, begin signing with it, then remove the old key
+        once old signatures have aged out.</p>
+      <div class="seg" data-ww="did3">
+        <button class="with on" data-s="with">WITH THIS</button>
+        <button class="without" data-s="without">WITHOUT THIS</button>
+      </div>
+      <div class="ww-state with show" data-ww-panel="did3-with">Overlapping keys let the new key go live before
+        the old one is retired: no downtime or atomic cutover.</div>
+      <div class="ww-state without" data-ww-panel="did3-without">Rotating the signing key would need a hard
+        cutover, a window where either the old key is suddenly untrusted or the new key isn't trusted yet.</div>
+      <span class="where-tag">common/models/platforms/socialpoint/link.ts:46</span>
+      <pre>const SocialPointLinkInitIssuerSchema = z.object({
+  issuer: SocialPointIssuerSchema,
+  provider_origin: SocialPointCanonicalHttpsOriginSchema,
+  <span class="hl">keys: z.array(z.object({ key_id, public_key }).strict()).min(1)</span>
+    .superRefine(<span class="cm">/* rejects duplicate key_id within one issuer */</span>),
+}).strict()
+
+export const SocialPointLinkInitConfigSchema = z.object({
+  edge, audience, app_bootstrap_origin,
+  <span class="hl">issuers: z.array(SocialPointLinkInitIssuerSchema).min(1)</span>
+    .superRefine(<span class="cm">/* rejects duplicate issuer values */</span>),
+}).strict()</pre>
+      <div class="proves">✓ one edge config can serve multiple SP deployments/environments with no per-tenant code</div>
+    </div>
+
+    <div class="did-item" id="did4">
+      <div class="num">04 · Encrypted, and to exactly one place</div>
+      <div class="actor-tags"><span class="actor-tag" style="background:var(--a-cl)"><i></i>CL EDGE</span></div>
+      <h3>KMS-encrypted, cryptographically bound to identity</h3>
+      <p>CL never persists a plaintext SP credential. It encrypts the credential directly with Google Cloud KMS and
+        stores the ciphertext with its exact KMS key version. CRC32C protects the plaintext, ciphertext and
+        authenticated-data exchanges with KMS. The authenticated data is bound to six identity values, so changing
+        the edge, workspace, issuer, Site, provider connection or provider key causes decryption to fail.</p>
+      <div class="seg" data-ww="did4">
+        <button class="with on" data-s="with">WITH THIS</button>
+        <button class="without" data-s="without">WITHOUT THIS</button>
+      </div>
+      <div class="ww-state with show" data-ww-panel="did4-with">Each ciphertext is welded to one exact connector
+        identity. Decrypting it against a different workspace, Site, or key fails, even with raw database access.</div>
+      <div class="ww-state without" data-ww-panel="did4-without">KMS would still protect credential
+        confidentiality, but ciphertext could be relocated or substituted between connector identities without a
+        cryptographic identity check.</div>
+      <span class="where-tag">credentialBoundary.ts: buildSocialPointProviderCredentialAad()</span>
+      <pre>JSON.stringify([
+  <span class="str">'converlens.socialpoint.credential'</span>, 1,
+  edge, workspaceId, issuer, siteId, providerConnectionId, keyId,
+])
+<span class="cm">// all six values are re-validated again on decrypt, a mismatch fails closed</span></pre>
+      <div class="proves">✓ direct KMS encryption + identity-bound AAD, not a shared application-level secret</div>
+    </div>
+
+    <div class="did-item" id="did5">
+      <div class="num">05 · Source and destination authority</div>
+      <div class="actor-tags">
+        <span class="actor-tag" style="background:var(--a-cl)"><i></i>CL EDGE</span>
+        <span class="actor-tag" style="background:var(--a-api)"><i></i>SP API</span>
+      </div>
+      <h3>A boundary enforced by schema, not by convention</h3>
+      <p>SP owns source truth. CL owns every destination mapping and mutation decision. That boundary isn't a
+        naming convention or a code-review rule. Strict Social Point wire schemas reject unknown and
+        destination-only fields before accepted payloads reach business logic. A CL-only concept such as a block
+        type, native ref, contact instruction or <code>skip_nlp</code> therefore fails parsing at the contract
+        boundary. Committed contract tests demonstrate that rejection; the absence of matching CL vocabulary in SP
+        API provides supporting evidence that destination decisions remain on the CL side.</p>
+      <div class="seg" data-ww="did5">
+        <button class="with on" data-s="with">WITH THIS</button>
+        <button class="without" data-s="without">WITHOUT THIS</button>
+      </div>
+      <div class="ww-state with show" data-ww-panel="did5-with">Strict parsing rejects unknown or destination-only
+        fields before the accepted request reaches business logic.</div>
+      <div class="ww-state without" data-ww-panel="did5-without">A bug, or a compromised SP deployment, could
+        smuggle a CL-only instruction into what's meant to be pure source data, and CL would have no structural
+        reason to reject it.</div>
+      <span class="where-tag">common/models/platforms/socialpoint/contracts.spec.ts:108</span>
+      <pre><span class="str">it('accepts the pinned wire shape and rejects destination or unknown fields')</span>
+expect(() => Schema.parse(fixture)).not.toThrow()
+<span class="hl">expect(() => Schema.parse({ ...fixture, contacts: [] })).toThrow()      // CL concept</span>
+<span class="hl">expect(() => Schema.parse({ ...fixture, blocks: [] })).toThrow()        // CL concept</span></pre>
+      <div class="proves">✓ contract tests prove rejection; a zero-result SP API vocabulary search corroborates the boundary</div>
+    </div>
+
+    <h2 id="entitlement"><span class="n">04</span>Site Entitlement: The Fast Lever</h2>
+    <div class="split">
+      <div>
+        <p>Cluster trust is deliberately slow and rare: a reviewed Git change. Day-to-day, the only control that
+          matters is a single audited boolean per Social Point Site: <code>ConfigOverrides.hive.converlens.enabled</code>.
+          Absent means false. Exactly one role can read or change it, for an arbitrary Site.</p>
+        <span class="where-tag">SiteEntitlementManagementRepository.php:23 setEnabled()</span>
+        <pre>$this->pdo->beginTransaction();
+$previous = $this->currentValue($this->read(true));  <span class="cm">// SELECT ... FOR UPDATE</span>
+<span class="hl">if ($previous !== $enabled) {
+  $this->updateSetting($enabled);
+  $this->insertAudit($siteId, $previous, $enabled, $actor, ...);
+}</span>
+$this->pdo->commit();  <span class="cm">// mutation + audit row, one transaction</span></pre>
+        <p>The current value is enforced across two systems and throughout the connection lifecycle. SP Core checks
+          it during launch and link exchange. SP API checks it during credential issue and confirmation, readiness,
+          and every provider data or file-intent request.</p>
+        <div class="actor-tags">
+          <span class="actor-tag" style="background:var(--a-core)"><i></i>SP CORE</span>
+          <span class="actor-tag" style="background:var(--a-api)"><i></i>SP API</span>
+        </div>
+      </div>
+      <div>
+        <table class="matrix">
+          <tr><th>Who</th><th class="center">GET</th><th class="center">PUT</th></tr>
+          <tr><td>Ordinary Site user</td><td class="center no">✕</td><td class="center no">✕</td></tr>
+          <tr><td>Site administrator</td><td class="center no">✕</td><td class="center no">✕</td></tr>
+          <tr class="emph"><td><code>app_ops</code> staff, <code>app_auth</code>=<code>admin</code></td><td class="center yes">✓</td><td class="center yes">✓</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="entitlement-lifecycle">
+      <div class="entitlement-step"><div class="state-dot"></div><b>Enable</b><p>An audited Site value becomes true.</p></div>
+      <div class="entitlement-step"><div class="state-dot"></div><b>Connect</b><p>Core and API independently recheck entitlement.</p></div>
+      <div class="entitlement-step"><div class="state-dot"></div><b>Active use</b><p>Every provider data and file-intent request checks current entitlement.</p></div>
+      <div class="entitlement-step stop"><div class="state-dot"></div><b>Disable</b><p>Subsequent provider requests return unavailable. Existing credentials remain stored.</p></div>
+      <div class="entitlement-step offboard"><div class="state-dot"></div><b>Offboard</b><p>Explicitly revoke keys and mark the provider connection offboarded.</p></div>
+    </div>
+    <div class="entitlement-enforcement">
+      <div class="enforcer">SP CORE</div><div class="checks"><span>Launch</span><span>Link exchange</span></div>
+      <div class="enforcer">SP API</div><div class="checks"><span>Credential issue</span><span>Confirmation</span><span>Readiness</span><span>Every provider read</span><span>Every file intent</span></div>
+    </div>
+    <p class="entitlement-boundary"><b>Boundary:</b> disablement cannot recall data already returned, stop local CL
+      work already underway or invalidate a previously issued short-lived storage redirect. Explicit offboarding
+      performs credential revocation and remains available while entitlement is disabled.</p>
+
+    <h2 id="nongoals"><span class="n">05</span>What the Model Guarantees</h2>
+    <p class="dek">The assurance comes from explicit boundaries that can be named and tested. Restraint keeps those
+      boundaries reviewable instead of surrounding them with new mutable authorities.</p>
+
+    <div class="assurance-grid">
+      <div class="assurance-item"><b>Trust before network</b><span>Invalid initiation cannot trigger DNS or HTTP.</span></div>
+      <div class="assurance-item"><b>Authority remains divided</b><span>No handoff, credential or configuration value authorises the complete flow alone.</span></div>
+      <div class="assurance-item"><b>Entitlement remains live</b><span>Every provider request checks the current Site decision.</span></div>
+      <div class="assurance-item"><b>Provider credential stays backend-only</b><span>The browser sees a handoff and CL session, never the SP credential.</span></div>
+      <div class="assurance-item"><b>Ciphertext stays identity-bound</b><span>KMS decryption fails outside the exact connector identity.</span></div>
+      <div class="assurance-item"><b>Wire authority stays narrow</b><span>Strict parsing rejects destination-only instructions.</span></div>
+    </div>
+
+    <div class="tradeoff-grid">
+      <div class="tradeoff-part">
+        <h3>Deliberately not automated</h3>
+        <ul>
+          <li>Signing trust is per deployment, not a per-Site key registry or certificate system.</li>
+          <li>Rotation uses explicit key overlap, not autonomous discovery or scheduling.</li>
+          <li>Issuer, callback and CL authority come from reviewed configuration, not source-selected values.</li>
+          <li>Replay protection uses Core exchange state and CL's expiring, single-use handoffs, not another nonce store.</li>
+          <li>AVP supplies the secret boundary; no second optional-secrets controller is introduced.</li>
+          <li>Disablement remains reversible; explicit, separately authorised offboarding performs revocation.</li>
+        </ul>
+      </div>
+      <div class="tradeoff-part">
+        <h3>Why the restraint matters</h3>
+        <ul>
+          <li>Fewer mutable authorities and fewer paths that can silently expand access.</li>
+          <li>A smaller secret and operational surface, built on mechanisms the platforms already operate.</li>
+          <li>Clear activation, rotation, disablement and revocation paths that remain visible to reviewers.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="closing-statement">
+      <div class="label">The security model, in one sentence</div>
+      <p>Trust is established before action, authority is incomplete in every one place, and access remains
+        reversible at the boundary where customer data is served.</p>
+    </div>
+
+    <div class="journey-navigation" id="journey-navigation"></div>
+    <footer class="content-footer" id="content-footer"></footer>
+  </main>
+</div>
+
+<script>
+/* ── Section 1: gate toggle simulator ── */
+(function () {
+  const gateOrder = [
+    { id: 'g1', label: 'Generic Capability' },
+    { id: 'g2', label: 'Cluster Trust' },
+    { id: 'g3', label: 'Site Entitlement' },
+  ];
+  function updateGates() {
+    let blockedAt = null;
+    gateOrder.forEach(g => {
+      const el = document.getElementById(g.id);
+      const lab = document.getElementById(g.id + 'label');
+      const on = el.checked;
+      lab.textContent = on ? 'ENABLED' : 'DISABLED';
+      lab.className = 'gate-state-label ' + (on ? 'on' : 'off');
+      if (!on && blockedAt === null) blockedAt = g.label;
+    });
+    const banner = document.getElementById('gateResult');
+    if (blockedAt === null) {
+      banner.className = 'gate-result allowed';
+      banner.innerHTML = '<span>✓</span><span><b class="allow">Open in Analytics → ALLOWED.</b> All three gates are open. Flip one off above.</span>';
+    } else {
+      banner.className = 'gate-result blocked';
+      banner.innerHTML = '<span>✕</span><span><b class="block">Open in Analytics → BLOCKED at ' + blockedAt + '.</b> The other gates being open doesn\'t compensate.</span>';
+    }
+  }
+  gateOrder.forEach(g => document.getElementById(g.id).addEventListener('change', updateGates));
+  updateGates();
+})();
+
+/* ── Section 2: handshake step-through (flow + swimlane, synced) ── */
+(function () {
+  const DETAIL = {
+    m1:  { actor: 'BROWSER',  color: 'var(--a-browser)', title: 'User clicks "Open in Analytics"', body: 'The only human-initiated step in the whole exchange.' },
+    m2:  { actor: 'SP CORE',  color: 'var(--a-core)',    title: 'Checks entitlement, signs an Ed25519 token', body: 'Validates the Site entitlement flag and CSRF, then signs a short-lived "spinit1" token with libsodium\'s Ed25519.', code: '$signature = sodium_crypto_sign_detached(\n  $this->signingInput($edge, $token),\n  sodium_crypto_sign_secretkey($keyPair)\n);' },
+    m3:  { actor: 'SP CORE',  color: 'var(--a-core)',    title: 'POSTs the signed token to CL\'s init endpoint', body: 'Delivered over plain HTTPS, the signature, not the transport, is what\'s trusted here.', code: 'LinkInitClient.php:29' },
+    m4:  { actor: 'CL EDGE',  color: 'var(--a-cl)',      title: 'Verifies the signature, before any DNS or network call', body: 'Nothing else runs until this passes. Test-enforced: a tampered signature never triggers a DNS resolve or an HTTP request.', code: 'expect(dependencies.resolve).not.toHaveBeenCalled()\nexpect(dependencies.request).not.toHaveBeenCalled()' },
+    m5:  { actor: 'CL EDGE',  color: 'var(--a-cl)',      title: 'Calls back over IP-pinned HTTPS transport', body: 'CL accepts only public DNS results, connects to one selected IP on a fixed route, preserves normal TLS verification and verifies the remote address.', code: 'linkCallbackTransport.ts:361\n/ccm/system/converlens/v1/link-exchange' },
+    m6:  { actor: 'SP CORE',  color: 'var(--a-core)',    title: 'Requests a data credential over Core\'s own JWT channel', body: 'This is Core\'s pre-existing internal auth channel, not the SP↔CL trust channel established above.' },
+    m7:  { actor: 'SP API',   color: 'var(--a-api)',     title: 'Checks Site entitlement + eligibility, issues a pending credential', body: 'A second, independent entitlement check, not a reuse of Core\'s.', code: 'if (!$this->isEntitled($claims[\'site_id\']))\n  return ProviderResponse::error(503, \'unavailable\');' },
+    m8:  { actor: 'SP API',   color: 'var(--a-api)',     title: 'Returns the pending credential', body: 'Issued but not yet active, confirmation happens later, at step 11.' },
+    m9:  { actor: 'SP CORE',  color: 'var(--a-core)',    title: 'Returns the credential inside the callback response', body: 'Bundled alongside site/user/target facts.', code: 'LinkExchangeCallback.php:81' },
+    m10: { actor: 'CL EDGE',  color: 'var(--a-cl)',      title: 'Encrypts it with KMS, bound to connector identity', body: 'Encrypted directly by Google Cloud KMS with authenticated data bound to six identity values.', code: 'credentialBoundary.ts' },
+    m11: { actor: 'CL EDGE',  color: 'var(--a-cl)',      title: 'Confirms the credential: SP API promotes pending → active', body: 'Only after this confirmation is the credential usable for real data reads.' },
+    m12: { actor: 'CL EDGE',  color: 'var(--a-cl)',      title: 'Relays success: a single-use handoff + bootstrap URL', body: 'A 5-minute, single-use opaque token, not the real session, not the data credential.' },
+    m13: { actor: 'SP CORE',  color: 'var(--a-core)',    title: 'Relays success to the browser', body: 'CSP-pinned to one exact inline script, so nothing else can execute in this response.', code: 'LinkRelay.php' },
+    m14: { actor: 'BROWSER',  color: 'var(--a-browser)', title: 'Scrubs the fragment, exchanges it for the real session', body: 'The browser redeems the handoff directly with CL. SP never receives the resulting session token.', code: 'socialpoint-link.ts:continueSocialPointLink()' },
+  };
+  const ORDER = ['m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12','m13','m14'];
+
+  const panelTitle = document.getElementById('sp-title');
+  const panelBody = document.getElementById('sp-body');
+  const panelCode = document.getElementById('sp-code');
+  const panelActor = document.getElementById('sp-actor');
+  const stepNum = document.getElementById('stepNum');
+  const playBtn = document.getElementById('playBtn');
+  let current = 0; // index into ORDER
+  let timer = null;
+
+  function render() {
+    const key = ORDER[current];
+    const d = DETAIL[key];
+    document.querySelectorAll('.msg, .flow .node, .step-toc li').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('[data-key="' + key + '"]').forEach(el => el.classList.add('active'));
+    panelTitle.textContent = d.title;
+    panelBody.textContent = d.body;
+    panelActor.textContent = d.actor;
+    panelActor.style.background = d.color;
+    if (d.code) { panelCode.style.display = 'block'; panelCode.textContent = d.code; }
+    else { panelCode.style.display = 'none'; }
+    stepNum.textContent = String(current + 1);
+  }
+  function stopPlay() {
+    if (timer) { clearInterval(timer); timer = null; playBtn.innerHTML = '▶ Play'; }
+  }
+  function goTo(i) {
+    current = ((i % ORDER.length) + ORDER.length) % ORDER.length;
+    render();
+  }
+
+  document.querySelectorAll('.msg, .flow .node, .step-toc li').forEach(el => {
+    el.addEventListener('click', () => {
+      stopPlay();
+      const key = el.dataset.key || el.closest('[data-key]')?.dataset.key;
+      const idx = ORDER.indexOf(key);
+      if (idx > -1) goTo(idx);
+    });
+  });
+  document.getElementById('prevBtn').addEventListener('click', () => { stopPlay(); goTo(current - 1); });
+  document.getElementById('nextBtn').addEventListener('click', () => { stopPlay(); goTo(current + 1); });
+  playBtn.addEventListener('click', () => {
+    if (timer) { stopPlay(); return; }
+    playBtn.innerHTML = '❙❙ Pause';
+    timer = setInterval(() => goTo(current + 1), 1900);
+  });
+
+  render();
+})();
+
+/* ── Section 3: with/without toggles on each Defense-in-Depth card ── */
+document.querySelectorAll(".seg[data-ww]").forEach(seg => {
+  const key = seg.dataset.ww;
+  seg.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      seg.querySelectorAll("button").forEach(b => b.classList.remove("on"));
+      btn.classList.add("on");
+      const state = btn.dataset.s;
+      const parent = seg.parentElement;
+      parent.querySelectorAll(".ww-state").forEach(p => p.classList.remove("show"));
+      parent.querySelector('[data-ww-panel="' + key + '-' + state + '"]').classList.add("show");
+    });
+  });
+});
+
+document.querySelectorAll("[data-tabs]").forEach(bar => {
+  const btns = bar.querySelectorAll("button");
+  const scope = bar.closest(".diagram-switch");
+  const panes = scope.querySelectorAll(".tabpane");
+  btns.forEach(b => b.addEventListener("click", () => {
+    btns.forEach(x => x.classList.remove("on"));
+    panes.forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    panes[+b.dataset.t].classList.add("on");
+  }));
+});
+</script>
+</body>
+</html>

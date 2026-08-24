@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Header/Nav Concepts: SPSync</title>
+<link rel="stylesheet" href="assets/shared.css">
+<style>
+  /* Scratch design-exploration file for the consolidated 6-piece structure.
+     Not part of the shipped pack, not linked from site.js's PAGES list.
+     See plan/style-guide.md, "Component prototyping workflow". */
+
+  body { background: var(--gray-150); padding-top: 40px; }
+  .page { display: block; max-width: 980px; }
+
+  .intro { margin-bottom: 36px; }
+  .intro h1 { font-size: 28px; margin-bottom: 10px; }
+  .intro p { color: var(--gray-500); max-width: 660px; font-size: 14.5px; }
+  .intro .structure {
+    margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .intro .structure span {
+    font-family: var(--mono); font-size: 11px; color: var(--gray-700);
+    background: #fff; border: 1.5px solid var(--gray-300); border-radius: 7px;
+    padding: 5px 10px;
+  }
+  .intro .structure span.cta { color: var(--clay); border-color: var(--clay); font-weight: 600; }
+
+  .concept {
+    background: #fff; border: 1.5px solid var(--gray-300); border-radius: 14px;
+    margin-bottom: 26px; overflow: hidden;
+  }
+  .concept-label { display: flex; align-items: baseline; gap: 10px; padding: 18px 22px 2px; }
+  .concept-label .cn {
+    font-family: var(--mono); font-size: 11px; color: var(--gray-500);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .concept-label h3 { font-family: var(--serif); font-size: 18px; font-weight: 500; color: var(--slate); }
+  .concept-note { padding: 6px 22px 20px; font-size: 13px; color: var(--gray-500); max-width: 680px; }
+  .concept-note b { color: var(--gray-700); }
+
+  /* the mounted header preview: strips the sticky/negative-margin rules
+     .top-header relies on when it's flush against the real page body */
+  .mk-stage {
+    padding: 18px 22px; background: var(--ivory);
+    border-top: 1px solid var(--gray-300); border-bottom: 1px solid var(--gray-300);
+  }
+  .mk-stage .top-header {
+    position: static; margin: 0; padding: 0; border-bottom: none;
+  }
+
+  /* shared building blocks for the concepts, layered on top of the real
+     .top-header/.brand/.pack-nav classes from shared.css */
+  .top-header .nav-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .home-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    border: 1.5px solid var(--gray-300); color: var(--slate); text-decoration: none;
+  }
+  .home-icon:hover { background: var(--gray-150); border-color: var(--slate); }
+  .home-icon.current { background: var(--slate); border-color: var(--slate); color: var(--ivory); }
+  .home-icon svg { width: 15px; height: 15px; }
+
+  .home-word {
+    display: flex; align-items: center; gap: 7px; text-decoration: none;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--slate); font-weight: 600; white-space: nowrap;
+  }
+  .home-word .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--clay); }
+
+  .divider { width: 1px; align-self: stretch; background: var(--gray-300); margin: 0 2px; }
+
+  .cta-fill, .cta-outline, .cta-plain {
+    display: flex; align-items: center; gap: 6px; text-decoration: none; white-space: nowrap;
+    font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+    border-radius: 999px; padding: 7px 14px;
+  }
+  .cta-fill { color: #fff; background: var(--clay); }
+  .cta-fill:hover { background: var(--slate); }
+  .cta-outline { color: var(--clay); background: transparent; border: 1.5px solid var(--clay); padding: 5.5px 13px; }
+  .cta-outline:hover { background: var(--clay); color: #fff; }
+  .cta-plain { color: var(--gray-500); background: var(--gray-150); border-radius: 7px; padding: 5px 9px; }
+  .cta-plain b { font-weight: 600; color: var(--gray-300); font-size: 10px; margin-right: 4px; }
+
+  .mk-tier2 {
+    display: flex; gap: 2px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid var(--gray-300);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="intro">
+    <div class="eyebrow"><span class="dot"></span>Design exploration, not part of the shipped pack</div>
+    <h1>Header and nav concepts for the consolidated structure</h1>
+    <p>Five options for the pack-wide header now that the plan is a landing page, four numbered
+      content pages, and a Get Started page. Each row below is a real rendered header using the
+      live <code>shared.css</code> tokens, not a description of one. Concept 0 is today's exact
+      style, extended to the new item count, as a reference point for what changes in each option
+      after it.</p>
+    <div class="structure">
+      <span>Home</span>
+      <span>01 Security</span>
+      <span>02 Sync Engine</span>
+      <span>03 Tool Adapters</span>
+      <span>04 Process</span>
+      <span class="cta">Get Started</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="concept-label"><span class="cn">Concept 0</span><h3>Baseline, no differentiation</h3></div>
+    <div class="concept-note">Today's exact treatment (numbered mono chips, brand wordmark on the
+      left) with the new item set dropped in as-is. <b>Get Started</b> reads as just another page in
+      the list, not a call to action. Useful as a control to compare the other options against.</div>
+    <div class="mk-stage">
+      <div class="top-header">
+        <span class="brand"><span class="dot"></span>SPSync Delivery Pack</span>
+        <nav class="pack-nav">
+          <a href="#">Home</a>
+          <a href="#" class="current"><b>01</b>Security</a>
+          <a href="#"><b>02</b>Sync Engine</a>
+          <a href="#"><b>03</b>Tool Adapters</a>
+          <a href="#"><b>04</b>Process</a>
+          <a href="#">Get Started</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="concept-label"><span class="cn">Concept 1</span><h3>Icon home, filled CTA pill</h3></div>
+    <div class="concept-note">The wordmark is replaced with a small house icon (the pack name
+      already lives in the browser tab and the landing page itself, so it does not need repeating
+      in every header). <b>Get Started</b> becomes a solid clay pill, the only filled shape in the
+      bar, so it reads as the one actionable item among four informational links.</div>
+    <div class="mk-stage">
+      <div class="top-header">
+        <a href="#" class="home-icon" title="Home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.5V19a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1V9.5"/></svg>
+        </a>
+        <div class="nav-group">
+          <nav class="pack-nav">
+            <a href="#" class="current"><b>01</b>Security</a>
+            <a href="#"><b>02</b>Sync Engine</a>
+            <a href="#"><b>03</b>Tool Adapters</a>
+            <a href="#"><b>04</b>Process</a>
+          </nav>
+          <a href="#" class="cta-fill">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="concept-label"><span class="cn">Concept 2</span><h3>Wordmark home, outlined CTA behind a divider</h3></div>
+    <div class="concept-note">Keeps the familiar wordmark as the home link (clickable now, it
+      was a static label before). A thin vertical divider separates the four content links from
+      <b>Get Started</b>, so the CTA reads as its own zone rather than a fifth item in the list.
+      The outline (rather than a fill) keeps it a step quieter than concept 1, still distinct, not
+      shouting.</div>
+    <div class="mk-stage">
+      <div class="top-header">
+        <a href="#" class="home-word"><span class="dot"></span>SPSync Delivery Pack</a>
+        <div class="nav-group">
+          <nav class="pack-nav">
+            <a href="#" class="current"><b>01</b>Security</a>
+            <a href="#"><b>02</b>Sync Engine</a>
+            <a href="#"><b>03</b>Tool Adapters</a>
+            <a href="#"><b>04</b>Process</a>
+          </nav>
+          <span class="divider"></span>
+          <a href="#" class="cta-outline">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="concept-label"><span class="cn">Concept 3</span><h3>Compact icon home, CTA with a directional glyph, pushed hard right</h3></div>
+    <div class="concept-note">The most minimal home treatment (icon only, no border, closer to a
+      favicon-style mark) frees up room so <b>Get Started</b> can sit with real breathing room on
+      the far right, plus a small arrow to read as "go do this" rather than "read this page". Best
+      option if Get Started should feel closer to a product CTA than a documentation tab.</div>
+    <div class="mk-stage">
+      <div class="top-header">
+        <a href="#" class="home-icon current" title="Home" style="border:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.5V19a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1V9.5"/></svg>
+        </a>
+        <nav class="pack-nav">
+          <a href="#"><b>01</b>Security</a>
+          <a href="#"><b>02</b>Sync Engine</a>
+          <a href="#"><b>03</b>Tool Adapters</a>
+          <a href="#"><b>04</b>Process</a>
+        </nav>
+        <a href="#" class="cta-fill">
+          Get Started
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="concept">
+    <div class="concept-label"><span class="cn">Concept 4</span><h3>Two-tier header</h3></div>
+    <div class="concept-note">Splits the bar into two rows: a slim top row with the home icon,
+      wordmark and the <b>Get Started</b> CTA always pinned top-right, and a second row underneath
+      for the four content links. Worth testing if the single-row bar ever feels crowded once real
+      labels (rather than these short placeholders) are in place, at the cost of a taller sticky
+      header overall.</div>
+    <div class="mk-stage">
+      <div class="top-header" style="flex-wrap: wrap;">
+        <a href="#" class="home-word"><span class="dot"></span>SPSync Delivery Pack</a>
+        <a href="#" class="cta-fill">Get Started</a>
+        <div class="mk-tier2" style="width:100%;">
+          <a href="#" class="cta-plain current" style="background:var(--slate); color:var(--ivory);"><b style="color:var(--clay);">01</b>Security</a>
+          <a href="#" class="cta-plain"><b>02</b>Sync Engine</a>
+          <a href="#" class="cta-plain"><b>03</b>Tool Adapters</a>
+          <a href="#" class="cta-plain"><b>04</b>Process</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SP Sync Engine securely maintains analytical representations of nine Social Point tools inside Converlens.">
+<title>SP Sync Engine</title>
+<link rel="stylesheet" href="assets/shared.css?v=white-signal-1">
+<script src="assets/site.js?v=tool-adapters-1" defer></script>
+<style>
+  body { padding-bottom: 0; }
+  .landing { width: auto; max-width: 1240px; margin: 0 auto; }
+  .landing p { max-width: none; }
+  .landing-kicker { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; color: var(--gray-700); font: 11px/1 var(--sans); letter-spacing: .11em; text-transform: uppercase; }
+  .landing-kicker::before { width: 34px; border-top: 2px solid var(--clay); content: ""; }
+
+  .landing-hero { padding: 34px 0 42px; }
+  .landing-hero-copy { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(270px,.55fr); align-items: end; gap: 60px; margin-bottom: 58px; }
+  .landing-hero-copy > * { min-width: 0; }
+  .landing h1 { max-width: 860px; margin: 0; color: var(--op-ink); font: 400 clamp(54px,7.2vw,104px)/.91 var(--display); letter-spacing: -.035em; text-transform: uppercase; }
+  .landing h1 em { color: var(--clay); font-style: italic; }
+  .landing-intro { margin-bottom: 4px; }
+  .landing-intro p { max-width: 440px; margin: 0 0 26px; color: var(--gray-700); font-size: 17px; }
+  .landing-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; }
+  .landing-button { display: inline-flex; align-items: center; justify-content: space-between; gap: 28px; min-height: 58px; padding: 15px 20px; border: 1px solid var(--slate); background: var(--slate); color: var(--ivory); font-size: 15px; font-weight: 700; text-decoration: none; }
+  .landing-button span { color: var(--op-lime); font-family: var(--sans); }
+  .landing-button:hover { border-color: var(--op-lime); background: var(--op-lime); color: var(--text-on-signal); }
+  .landing-button:hover span { color: var(--text-on-signal); }
+  .landing-hero .landing-button { border-color: var(--op-lime); background: var(--op-lime); color: var(--text-on-signal); }
+  .landing-hero .landing-button span { color: var(--text-on-signal); }
+  .landing-hero .landing-button:hover { border-color: var(--slate); background: var(--slate); color: var(--text-on-dark); }
+  .landing-hero .landing-button:hover span { color: var(--op-lime); }
+  .landing-text-link { border-bottom: 1px solid var(--gray-500); color: var(--gray-700); font: 12px/1.4 var(--sans); text-decoration: none; }
+  .landing-text-link:hover { border-color: var(--clay); color: var(--clay); }
+
+  .landing-architecture { position: relative; display: grid; grid-template-columns: minmax(220px,.72fr) minmax(430px,1.55fr) minmax(220px,.72fr); min-height: 330px; overflow: hidden; border-top: 1px solid var(--gray-300); border-bottom: 1px solid var(--gray-300); background: var(--gray-150); }
+  .landing-bank { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; padding: 32px; }
+  .landing-bank.source { background: var(--slate); color: var(--ivory); }
+  .landing-bank.destination { background: var(--oat); }
+  .landing-bank-label { color: var(--muted-on-dark); font: 10px/1 var(--sans); letter-spacing: .12em; text-transform: uppercase; }
+  .landing-bank.destination .landing-bank-label { color: var(--gray-700); }
+  .landing-bank h2 { max-width: 250px; margin: 22px 0 12px; color: inherit; font: 400 clamp(29px,3.2vw,45px)/.95 var(--serif); letter-spacing: -.03em; }
+  .landing-bank p { max-width: 250px; margin: 0; color: var(--muted-on-dark); font-size: 13px; }
+  .landing-bank.destination p { color: var(--gray-700); }
+  .landing-bank-meta { display: flex; align-items: center; gap: 8px; margin-top: 26px; font: 10px/1 var(--sans); letter-spacing: .07em; text-transform: uppercase; }
+  .landing-bank-meta i { display: block; width: 8px; height: 8px; background: var(--op-lime); }
+  .landing-bank.destination .landing-bank-meta i { background: var(--olive); }
+
+  .landing-bridge { position: relative; display: flex; align-items: center; justify-content: center; padding: 40px 18px; background: var(--ivory); }
+  .landing-bridge::before, .landing-bridge::after { position: absolute; top: 50%; width: 50%; border-top: 1px solid var(--gray-300); content: ""; }
+  .landing-bridge::before { left: 0; }
+  .landing-bridge::after { right: 0; }
+  .landing-bridge-system { position: relative; z-index: 2; width: min(100%,520px); }
+  .landing-bridge-caption { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 16px; color: var(--gray-500); font: 9px/1.2 var(--sans); letter-spacing: .09em; text-transform: uppercase; }
+  .landing-bridge-caption strong { color: var(--clay); font-size: 11px; }
+  .landing-gates { position: relative; display: grid; grid-template-columns: repeat(3,1fr); min-height: 126px; border: 2px solid var(--clay); background: var(--ivory); box-shadow: 0 12px 0 var(--slate); }
+  .landing-gate { position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 16px 14px; border-right: 1px solid var(--clay); }
+  .landing-gate:last-child { border-right: 0; }
+  .landing-gate small { color: var(--clay); font: 9px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; }
+  .landing-gate b { font: 400 15px/1.15 var(--serif); }
+  .landing-gate-state { display: flex; align-items: center; gap: 7px; color: var(--olive); font: 9px/1 var(--sans); text-transform: uppercase; }
+  .landing-gate-state::before { width: 7px; height: 7px; border-radius: 50%; background: currentColor; content: ""; }
+  .landing-adapters { display: grid; grid-template-columns: repeat(9,1fr); gap: 4px; margin-top: 26px; }
+  .landing-adapter { height: 10px; background: var(--olive); transform-origin: left; animation: landing-adapter-in .45s both cubic-bezier(.2,.7,.2,1); }
+  .landing-adapter:nth-child(2) { animation-delay: .05s; }
+  .landing-adapter:nth-child(3) { animation-delay: .1s; }
+  .landing-adapter:nth-child(4) { animation-delay: .15s; }
+  .landing-adapter:nth-child(5) { animation-delay: .2s; }
+  .landing-adapter:nth-child(6) { animation-delay: .25s; }
+  .landing-adapter:nth-child(7) { animation-delay: .3s; }
+  .landing-adapter:nth-child(8) { animation-delay: .35s; }
+  .landing-adapter:nth-child(9) { animation-delay: .4s; }
+  .landing-bridge-foot { display: flex; justify-content: space-between; gap: 16px; margin-top: 12px; color: var(--gray-500); font: 9px/1.2 var(--sans); text-transform: uppercase; }
+  @keyframes landing-adapter-in { from { opacity: 0; transform: scaleX(0); } to { opacity: 1; transform: scaleX(1); } }
+
+  .landing-proof { display: grid; grid-template-columns: minmax(170px,.8fr) minmax(0,3.2fr); gap: clamp(32px,5vw,90px); padding: clamp(58px,7vw,92px) 0; border-top: 1px solid var(--slate); border-bottom: 1px solid var(--slate); }
+  .landing-section-label { margin: 0; font: 700 10px/1.3 var(--sans); letter-spacing: .1em; text-transform: uppercase; }
+  .landing-proof h2 { max-width: 12ch; margin: 13px 0 0; color: var(--slate); font: 400 clamp(29px,3vw,48px)/1 var(--serif); letter-spacing: -.035em; }
+  .landing-ledger { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border-top: 1px solid var(--slate); border-left: 1px solid var(--gray-300); }
+  .landing-ledger-item { min-height: 142px; padding: 18px; border-right: 1px solid var(--gray-300); border-bottom: 1px solid var(--gray-300); }
+  .landing-ledger-item:nth-child(1), .landing-ledger-item:nth-child(5) { background: var(--gray-150); }
+  .landing-ledger-item:nth-child(3) { background: var(--oat); }
+  .landing-ledger-value { display: block; margin-bottom: 28px; color: var(--slate); font: 400 clamp(32px,3.8vw,66px)/.88 var(--display); letter-spacing: -.03em; }
+  .landing-ledger-item:last-child .landing-ledger-value { font-size: clamp(29px,3.2vw,58px); }
+  .landing-ledger-label { display: block; max-width: 19ch; color: var(--gray-700); font: 10px/1.4 var(--sans); letter-spacing: .05em; text-transform: uppercase; }
+
+  .landing-contents { padding: clamp(72px,9vw,128px) 0; }
+  .landing-contents-head { display: grid; grid-template-columns: .8fr 3.2fr; gap: clamp(32px,5vw,90px); align-items: end; margin-bottom: clamp(40px,6vw,76px); }
+  .landing-contents h2 { max-width: 790px; margin: 0; color: var(--slate); font: 400 clamp(29px,3vw,48px)/1 var(--serif); letter-spacing: -.035em; }
+  .landing-contents-intro { max-width: 55ch !important; margin: 18px 0 0; color: var(--gray-500); font-size: 15px; }
+  .landing-dossier { margin: 0; padding: 0; border-top: 2px solid var(--slate); list-style: none; }
+  .landing-dossier-item { border-bottom: 1px solid var(--slate); }
+  .landing-dossier-link { position: relative; display: grid; grid-template-columns: 72px minmax(210px,.85fr) minmax(280px,1.15fr) 34px; gap: clamp(18px,3vw,52px); align-items: start; padding: 29px 4px 31px; color: var(--slate); text-decoration: none; transition: padding .18s ease; }
+  .landing-dossier-link::before { position: absolute; z-index: -1; inset: 0; background: var(--gray-150); opacity: 0; transition: opacity .18s ease; content: ""; }
+  .landing-dossier-link:hover { padding-inline: 16px; }
+  .landing-dossier-link:hover::before { opacity: 1; }
+  .landing-dossier-number { color: var(--clay); font: 400 clamp(26px,2.6vw,46px)/1 var(--display); letter-spacing: -.02em; }
+  .landing-dossier-name { font: 700 clamp(26px,2.6vw,46px)/1 var(--serif); letter-spacing: -.035em; }
+  .landing-dossier-description { max-width: 60ch; margin: 3px 0 0; color: var(--gray-700); font-size: clamp(14px,1vw,16px); line-height: 1.55; }
+  .landing-dossier-arrow { font: 24px/1 var(--sans); text-align: right; transition: transform .18s ease; }
+  .landing-dossier-link:hover .landing-dossier-arrow { color: var(--clay); transform: translateX(5px); }
+
+  .landing-closing { width: 100vw; min-height: 460px; margin-left: calc(50% - 50vw); background: var(--slate); color: var(--ivory); }
+  .landing-closing-inner { width: min(100%,1288px); min-height: inherit; margin: 0 auto; padding: clamp(64px,9vw,120px) 24px; }
+  .landing-closing .landing-section-label { color: var(--op-lime); }
+  .landing-closing h2 { max-width: 880px; margin: 24px 0 0; color: var(--ivory); font: 400 clamp(42px,5vw,76px)/.92 var(--serif); letter-spacing: -.045em; }
+  .landing-closing p:not(.landing-section-label) { max-width: 520px; margin: 32px 0 30px; color: var(--gray-300); font-size: 18px; }
+  .landing-closing .landing-button { border-color: var(--op-lime); background: var(--op-lime); color: var(--text-on-signal); }
+  .landing-closing .landing-button span { color: var(--text-on-signal); }
+  .landing-closing .landing-button:hover { border-color: var(--ivory); background: var(--ivory); color: var(--slate); }
+  .landing-evidence { width: 100vw; margin-left: calc(50% - 50vw); background: var(--oat); }
+  .landing-evidence-inner { display: grid; grid-template-columns: 8px minmax(0,1fr) minmax(240px,.45fr); gap: 24px; align-items: center; width: min(100%,1288px); margin: 0 auto; padding: clamp(34px,5vw,58px) 24px; }
+  .landing-evidence-rule { align-self: stretch; background: var(--clay); }
+  .landing-evidence .landing-section-label { color: var(--op-accent); }
+  .landing-evidence h2 { max-width: 650px; margin: 12px 0 0; color: var(--slate); font: 400 clamp(27px,3.7vw,44px)/.98 var(--serif); letter-spacing: -.03em; }
+  .landing-evidence-copy p { max-width: 400px; margin: 0 0 20px; color: var(--gray-700); font-size: 13px; line-height: 1.55; }
+  .landing-evidence-link { display: inline-flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 48px; padding: 12px 15px; border: 1px solid var(--slate); background: var(--slate); color: var(--ivory); font-size: 12px; font-weight: 800; text-decoration: none; }
+  .landing-evidence-link span { color: var(--op-lime); font-family: var(--sans); }
+  .landing-evidence-link:hover { border-color: var(--op-lime); background: var(--op-lime); color: var(--text-on-signal); }
+  .landing-evidence-link:hover span { color: var(--text-on-signal); }
+  .landing-footer { display: flex; justify-content: space-between; gap: 20px; max-width: none; margin: 0 -24px; padding: 22px 24px; border-top: 1px solid var(--op-rule-dark); background: var(--slate); color: var(--muted-on-dark); font: 9px/1.4 var(--sans); letter-spacing: .08em; text-transform: uppercase; }
+
+  @media (max-width: 980px) {
+    .landing-hero-copy { grid-template-columns: 1fr; gap: 30px; }
+    .landing-intro { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 20px; }
+    .landing-architecture { grid-template-columns: minmax(180px,.65fr) minmax(360px,1.3fr) minmax(180px,.65fr); }
+    .landing-bank { padding: 24px; }
+    .landing-dossier-link { grid-template-columns: 54px minmax(180px,.8fr) minmax(240px,1.2fr) 28px; }
+  }
+  @media (max-width: 760px) {
+    .landing-hero { padding-top: 18px; }
+    .landing h1 { font-size: 48px; }
+    .landing-hero-copy { margin-bottom: 40px; }
+    .landing-intro { display: block; }
+    .landing-intro p { font-size: 15px; }
+    .landing-actions { align-items: flex-start; flex-direction: column; }
+    .landing-button { width: 100%; }
+    .landing-architecture { display: block; min-height: 0; }
+    .landing-bank { min-height: 210px; }
+    .landing-bank h2 { font-size: 35px; }
+    .landing-bridge { min-height: 330px; padding: 34px 12px; }
+    .landing-bridge::before, .landing-bridge::after { left: 50%; right: auto; width: 0; height: 50%; border-top: 0; border-left: 1px solid var(--gray-300); }
+    .landing-bridge::before { top: 0; }
+    .landing-bridge::after { top: 50%; }
+    .landing-gates { box-shadow: 0 9px 0 var(--slate); }
+    .landing-gate { padding: 14px 8px; }
+    .landing-gate b { font-size: 12px; }
+    .landing-bridge-caption, .landing-bridge-foot { gap: 8px; font-size: 8px; }
+    .landing-proof, .landing-contents-head { grid-template-columns: 1fr; }
+    .landing-proof { gap: 30px; }
+    .landing-proof h2 { max-width: 18ch; }
+    .landing-ledger { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .landing-ledger-item { min-height: 132px; padding: 15px; }
+    .landing-ledger-item:nth-child(4) { background: var(--gray-150); }
+    .landing-ledger-item:nth-child(5) { background: transparent; }
+    .landing-contents-head { display: block; }
+    .landing-contents .landing-section-label { margin-bottom: 22px; }
+    .landing-dossier-link { grid-template-columns: 52px minmax(0,1fr) 22px; gap: 12px; padding: 24px 0 26px; }
+    .landing-dossier-description { grid-column: 2 / 4; margin-top: 7px; }
+    .landing-dossier-arrow { grid-column: 3; grid-row: 1; font-size: 20px; }
+    .landing-dossier-link:hover { padding-inline: 8px; }
+    .landing-closing, .landing-closing-inner { min-height: auto; }
+    .landing-closing p:not(.landing-section-label) { max-width: 38ch; }
+    .landing-evidence-inner { grid-template-columns: 1fr; align-items: start; }
+    .landing-evidence-rule { width: 100%; height: 7px; }
+    .landing-evidence-copy p { max-width: 48ch; }
+    .landing-footer { flex-direction: column; }
+  }
+  @media (max-width: 390px) {
+    .landing-ledger-label { font-size: 9px; }
+    .landing-dossier-name { font-size: 25px; }
+    .landing-dossier-number { font-size: 25px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .landing *, .landing *::before, .landing *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body data-page="00">
+<div class="top-header" id="top-header"></div>
+<main class="landing">
+  <section class="landing-hero" aria-labelledby="landing-title">
+    <div class="landing-hero-copy">
+      <div>
+        <div class="landing-kicker">Delivered system</div>
+        <h1 id="landing-title">From public contribution to <em>trusted insight.</em></h1>
+      </div>
+      <div class="landing-intro">
+        <p>SP Sync Engine securely maintains analytical representations of nine Social Point tools inside Converlens.</p>
+        <div class="landing-actions">
+          <a class="landing-button" href="01-security-authority.html">Explore the trust model <span>01 &gt;</span></a>
+          <a class="landing-text-link" href="#contents">Follow the journey</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="landing-architecture" aria-label="Social Point connected through three trust gates to Converlens analytical insight">
+      <section class="landing-bank source">
+        <div><div class="landing-bank-label">Source system</div><h2>Social Point</h2><p>Public contribution remains grounded in source-native tool structures.</p></div>
+        <div class="landing-bank-meta"><i aria-hidden="true"></i>Nine accepted adapters</div>
+      </section>
+      <div class="landing-bridge">
+        <div class="landing-bridge-system">
+          <div class="landing-bridge-caption"><strong>Controlled trust bridge</strong><span>Three gates</span></div>
+          <div class="landing-gates">
+            <div class="landing-gate"><small>Gate 01</small><b>Signed request</b><span class="landing-gate-state">Verified</span></div>
+            <div class="landing-gate"><small>Gate 02</small><b>Credential custody</b><span class="landing-gate-state">Protected</span></div>
+            <div class="landing-gate"><small>Gate 03</small><b>Site entitlement</b><span class="landing-gate-state">Authorised</span></div>
+          </div>
+          <div class="landing-adapters" role="img" aria-label="Nine accepted adapters">
+            <span class="landing-adapter"></span><span class="landing-adapter"></span><span class="landing-adapter"></span>
+            <span class="landing-adapter"></span><span class="landing-adapter"></span><span class="landing-adapter"></span>
+            <span class="landing-adapter"></span><span class="landing-adapter"></span><span class="landing-adapter"></span>
+          </div>
+          <div class="landing-bridge-foot"><span>Complete bounded snapshots</span><span>Canonical lifecycle</span></div>
+        </div>
+      </div>
+      <section class="landing-bank destination">
+        <div><div class="landing-bank-label">Analytical system</div><h2>Converlens</h2><p>Maintained representations support durable, trusted analytical insight.</p></div>
+        <div class="landing-bank-meta"><i aria-hidden="true"></i>Reconciled and complete</div>
+      </section>
+    </div>
+  </section>
+
+  <section class="landing-proof" aria-labelledby="proof-title">
+    <div><p class="landing-section-label">Verified evidence</p><h2 id="proof-title">The system, by the record.</h2></div>
+    <div class="landing-ledger" aria-label="Verified delivery evidence">
+      <div class="landing-ledger-item"><strong class="landing-ledger-value">3</strong><span class="landing-ledger-label">Trust gates</span></div>
+      <div class="landing-ledger-item"><strong class="landing-ledger-value">9</strong><span class="landing-ledger-label">Accepted adapters</span></div>
+      <div class="landing-ledger-item"><strong class="landing-ledger-value">1</strong><span class="landing-ledger-label">Canonical submission lifecycle</span></div>
+      <div class="landing-ledger-item"><strong class="landing-ledger-value">27</strong><span class="landing-ledger-label">Day inclusive delivery span</span></div>
+      <div class="landing-ledger-item"><strong class="landing-ledger-value">301</strong><span class="landing-ledger-label">Accepted commits</span></div>
+      <div class="landing-ledger-item"><strong class="landing-ledger-value">213,295</strong><span class="landing-ledger-label">Accepted code changes</span></div>
+    </div>
+  </section>
+
+  <section class="landing-contents" id="contents" aria-labelledby="contents-title">
+    <div class="landing-contents-head">
+      <p class="landing-section-label">Contents / 01 to 05</p>
+      <div><h2 id="contents-title">Follow the system from authority to activation.</h2><p class="landing-contents-intro">A guided account of what was built, how its boundaries hold, and how Social Point teams can activate it with control.</p></div>
+    </div>
+    <ol class="landing-dossier">
+      <li class="landing-dossier-item"><a class="landing-dossier-link" href="01-security-authority.html"><span class="landing-dossier-number">01</span><span class="landing-dossier-name">Security &amp; Authority</span><span class="landing-dossier-description">Cryptographic handshake, three gates and explicit credential custody establish who may act.</span><span class="landing-dossier-arrow" aria-hidden="true">&gt;</span></a></li>
+      <li class="landing-dossier-item"><a class="landing-dossier-link" href="02-sync-engine.html"><span class="landing-dossier-number">02</span><span class="landing-dossier-name">The Sync Engine</span><span class="landing-dossier-description">Complete bounded snapshots move through canonical insert, upsert and reconcile operations, including files and durable completion.</span><span class="landing-dossier-arrow" aria-hidden="true">&gt;</span></a></li>
+      <li class="landing-dossier-item"><a class="landing-dossier-link" href="03-tool-adapters.html"><span class="landing-dossier-number">03</span><span class="landing-dossier-name">Tool Adapters</span><span class="landing-dossier-description">Nine accepted source-native adapters converge on one shared route into the analytical system.</span><span class="landing-dossier-arrow" aria-hidden="true">&gt;</span></a></li>
+      <li class="landing-dossier-item"><a class="landing-dossier-link" href="04-process.html"><span class="landing-dossier-number">04</span><span class="landing-dossier-name">Process</span><span class="landing-dossier-description">Human-governed, agent-led delivery used repeated correction and evidence-led acceptance to reach the accepted implementation.</span><span class="landing-dossier-arrow" aria-hidden="true">&gt;</span></a></li>
+      <li class="landing-dossier-item"><a class="landing-dossier-link" href="05-get-started.html"><span class="landing-dossier-number">05</span><span class="landing-dossier-name">Get Started</span><span class="landing-dossier-description">Try the working QA experience, then activate production with control.</span><span class="landing-dossier-arrow" aria-hidden="true">&gt;</span></a></li>
+    </ol>
+  </section>
+
+  <section class="landing-closing" aria-labelledby="closing-title">
+    <div class="landing-closing-inner">
+      <div>
+        <p class="landing-section-label">First principle</p>
+        <h2 id="closing-title">Trust precedes every sync.</h2>
+        <p>Start with the cryptographic handshake, the three gates and the custody model that authorises the system.</p>
+        <a class="landing-button" href="01-security-authority.html">Open Security &amp; Authority <span>&gt;</span></a>
+      </div>
+    </div>
+  </section>
+  <aside class="landing-evidence" aria-labelledby="evidence-title">
+    <div class="landing-evidence-inner">
+      <div class="landing-evidence-rule" aria-hidden="true"></div>
+      <div>
+        <p class="landing-section-label">Understand the comparative scale</p>
+        <h2 id="evidence-title">Compare the SP Sync Engine deliverable scale to the OP-SP connector project for reference.</h2>
+      </div>
+      <div class="landing-evidence-copy">
+        <p>The substantial OP-SP connector offers a reference point from the same product ecosystem for assessing the SP Sync Engine project's scope, depth and delivery speed.</p>
+        <a class="landing-evidence-link" href="04-process.html#s4">Review the comparison <span>&gt;</span></a>
+      </div>
+    </div>
+  </aside>
+</main>
+<footer class="landing-footer"><span>SP Sync Engine</span><span>Open Point / Internal system guide</span></footer>
+</body>
+</html>

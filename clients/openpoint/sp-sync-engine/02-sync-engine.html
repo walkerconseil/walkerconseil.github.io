@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Sync Engine - SP Sync Engine</title>
+<link rel="stylesheet" href="assets/shared.css?v=white-signal-1">
+<script src="assets/site.js?v=tool-adapters-1" defer></script>
+<style>
+  /* Page-unique visualisations for The Sync Engine. */
+  .s1-evolution { align-items: center; display: grid; gap: 14px; grid-template-columns: 1fr 84px 1.1fr; margin: 22px 0; }
+  .s1-before { display: grid; gap: 6px; grid-template-columns: 1fr 1fr; }
+  .s1-before span { background: var(--gray-150); border: 1px solid var(--gray-300); border-radius: 7px; font-size: 11px; padding: 8px; text-align: center; }
+  .s1-before b { color: var(--slate); display: block; font-family: var(--serif); font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .s1-bridge { color: var(--clay); font-family: var(--mono); font-size: 10px; text-align: center; }
+  .s1-bridge::before { border-top: 2px solid var(--clay); content: ""; display: block; margin-bottom: 7px; }
+  .s1-lifecycle { background: #fff; border: 1px solid var(--clay); padding: 14px; }
+  .s1-lifecycle h3 { color: var(--clay); font-size: 20px; font-weight: 700; }
+  .s1-lifecycle .band { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .s1-lifecycle .band span { border: 1px solid var(--gray-300); color: var(--gray-700); font-family: var(--mono); font-size: 9px; padding: 4px 5px; }
+  .s1-scope { background: #edf1e7; color: var(--op-accent); font-size: 12px; margin: 15px 0; padding: 9px; }
+  .s2-pipeline { align-items: center; display: grid; gap: 7px; grid-template-columns: .76fr 18px .76fr 18px 2.65fr 18px 1.25fr; margin: 18px 0; }
+  .s2-phase { background: var(--gray-150); border: 1.5px solid var(--gray-300); border-radius: 9px; min-height: 151px; padding: 11px; }
+  .s2-phase.kernel { background: #edf1e7; border-color: var(--olive); }
+  .s2-phase h4 { color: var(--slate); font-family: var(--serif); font-size: 16px; font-weight: 500; line-height: 1.1; }
+  .s2-phase.kernel h4 { color: var(--op-accent); }
+  .s2-phase p { color: var(--gray-500); font-size: 11px; line-height: 1.35; margin: 6px 0 0; }
+  .s2-phase.kernel p { color: var(--op-accent); }
+  .s2-chit { border-radius: 99px; display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .08em; padding: 3px 7px; }
+  .s2-chit.tool { background: var(--gray-700); color: #fff; margin-bottom: 10px; }
+  .s2-chit.kernel { background: var(--olive); color: #fff; margin-bottom: 10px; }
+  .s2-chit.create { background: var(--olive); color: #fff; }
+  .s2-chit.update { background: var(--op-accent); color: #fff; }
+  .s2-chit.remove { background: var(--rust); color: #fff; }
+  .s2-arrow { color: var(--gray-500); font-size: 18px; text-align: center; }
+  .s2-plan { background: #fff; border: 1px solid var(--clay); min-height: 235px; overflow: hidden; position: relative; }
+  .s2-plan::after { border-color: var(--clay) transparent transparent var(--clay); border-style: solid; border-width: 0 20px 20px 0; content: ""; position: absolute; right: 0; top: 0; }
+  .s2-plan-head { padding: 11px 13px 8px; }
+  .s2-plan-head h4 { color: var(--clay); font-family: var(--serif); font-size: 17px; font-weight: 500; margin-top: 4px; }
+  .s2-plan-row { align-items: start; border-top: 1px solid var(--gray-300); display: grid; gap: 8px; grid-template-columns: 72px 1fr; padding: 9px 13px; }
+  .s2-plan-row h5 { color: var(--slate); font-family: var(--serif); font-size: 14px; font-weight: 500; line-height: 1.1; }
+  .s2-plan-row p { color: var(--gray-500); font-size: 10.5px; line-height: 1.3; margin: 3px 0 0; }
+  .snapshot-gate { background: var(--gray-150); border-radius: 10px; margin: 16px 0; padding: 13px; text-align: center; }
+  .snapshot-gate .proof { background: #fff; border: 1.5px dashed var(--clay); border-radius: 8px; color: var(--slate); font-family: var(--mono); font-size: 11px; margin: 8px auto; max-width: 280px; padding: 10px; }
+  .snapshot-gate .pass { background: #edf1e7; color: var(--op-accent); display: inline-block; font-size: 11px; padding: 4px 8px; }
+  .snapshot-gate .stop { color: var(--rust); font-size: 11px; margin-top: 8px; }
+  .tradeoff { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin: 16px 0; }
+  .tradeoff div { border: 1px solid var(--gray-300); border-radius: 8px; padding: 11px; }
+  .tradeoff h4 { color: var(--slate); font-family: var(--serif); font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+  .tradeoff ul { color: var(--gray-500); font-size: 12px; padding-left: 16px; }
+  .future-note { border-left: 3px solid var(--gray-300); color: var(--gray-500); font-size: 12px; margin-top: 20px; padding: 8px 10px; }
+  .s1-outcome { align-items: center; display: grid; gap: 22px; grid-template-columns: 180px 1fr; margin: 22px 0; }
+  .s1-outcome .number { color: var(--clay); font-family: var(--serif); font-size: 70px; line-height: .8; text-align: center; }
+  .s1-outcome .number small { color: var(--gray-500); display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .08em; line-height: 1.3; margin-top: 8px; }
+  .s1-outcome .statement { border-left: 3px solid var(--clay); padding-left: 18px; }
+  .s1-outcome .statement h3 { font-size: 27px; line-height: 1.1; }
+  .s1-outcome .statement p { color: var(--gray-500); margin-top: 8px; }
+  .s1-outcome .pillrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .s1-outcome .pill { background: #fff; border: 1px solid var(--gray-300); border-radius: 99px; font-family: var(--mono); font-size: 10px; padding: 4px 7px; }
+  .s2-responsibilities { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin: 20px 0; }
+  .s2-responsibilities .side { background: #fff; border: 1.5px solid var(--gray-300); border-radius: 10px; padding: 17px; }
+  .s2-responsibilities .side.kernel { background: #edf1e7; border-color: var(--olive); }
+  .s2-responsibilities .stamp { color: var(--clay); font-family: var(--mono); font-size: 10px; letter-spacing: .08em; margin-bottom: 8px; }
+  .s2-responsibilities h3 { font-size: 22px; }
+  .s2-responsibilities ul { color: var(--gray-500); font-size: 13px; margin-top: 11px; padding-left: 18px; }
+  .reconcile-promises { display: grid; gap: 22px; grid-template-columns: 1fr 1fr; margin: 20px 0; }
+  .reconcile-promises .part { border-top: 3px solid var(--clay); padding-top: 12px; }
+  .reconcile-promises h3 { font-size: 22px; }
+  .reconcile-promises p { color: var(--gray-500); font-size: 13px; margin-top: 6px; }
+  .file-boundaries { background: var(--gray-300); border: 1.5px solid var(--gray-300); border-radius: 11px; display: grid; gap: 1px; grid-template-columns: repeat(4, 1fr); margin: 18px 0 10px; overflow: hidden; }
+  .file-boundary { background: #fff; min-height: 186px; padding: 16px; }
+  .file-boundary.external { background: var(--gray-150); }
+  .file-boundary.atomic { background: #edf1e7; }
+  .file-boundary.durable { background: #edf1e7; }
+  .file-boundary.resolve { background: var(--gray-150); }
+  .file-boundary .mark { color: var(--clay); display: block; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .06em; }
+  .file-boundary h3 { color: var(--slate); font-size: 18px; margin: 16px 0 7px; }
+  .file-boundary p { color: var(--gray-700); font-size: 11px; line-height: 1.45; margin: 0; }
+  .file-boundary .property { border-top: 1px solid var(--gray-300); color: var(--gray-500); display: block; font-family: var(--mono); font-size: 8.5px; font-weight: 700; margin-top: 13px; padding-top: 8px; text-transform: uppercase; }
+  .file-boundary-caption { color: var(--gray-500); font-size: 11px; margin-bottom: 16px; }
+  .file-ledger-note { background: #fff; border: 1.5px solid var(--gray-300); border-radius: 9px; color: var(--gray-500); font-size: 12px; margin: 16px 0; padding: 11px; }
+  .file-ledger-note b { color: var(--slate); }
+  .file-trust { background: #fff; border: 1px solid var(--clay); margin: 16px 0; padding: 20px; text-align: center; }
+  .file-trust h3 { color: var(--clay); font-size: 25px; }
+  .file-trust > p { color: var(--gray-500); margin: 8px auto 17px; max-width: 600px; }
+  .file-checks { display: grid; gap: 8px; grid-template-columns: repeat(4, 1fr); text-align: left; }
+  .file-check { background: #fff; border: 1px solid var(--gray-300); font-size: 11px; padding: 9px; }
+  .file-check b { color: var(--slate); display: block; font-family: var(--serif); font-size: 14px; margin-bottom: 3px; }
+  .safe-replacement { align-items: center; display: grid; gap: 10px; grid-template-columns: 1fr 42px 1fr; margin: 16px 0; }
+  .safe-replacement .node { background: #fff; border: 1.5px solid var(--gray-300); border-radius: 10px; padding: 14px; text-align: center; }
+  .safe-replacement .node.safe { background: #edf1e7; border-color: var(--olive); }
+  .safe-replacement strong { color: var(--slate); display: block; font-family: var(--serif); font-size: 18px; }
+  .safe-replacement .link { background: var(--clay); height: 2px; }
+  .file-warning { background: #edf1e7; color: var(--op-accent); font-size: 12px; padding: 11px; }
+  .atomic-scope { display: grid; gap: 12px; grid-template-columns: 1fr 32px 1fr; margin: 16px 0; }
+  .atomic-scope .part { background: var(--gray-150); border: 1.5px solid var(--gray-300); border-radius: 10px; padding: 15px; }
+  .atomic-scope .part.atomic { background: #edf1e7; border-color: var(--clay); }
+  .atomic-scope .part h3 { color: var(--slate); font-size: 19px; margin-bottom: 5px; }
+  .atomic-scope .part p { color: var(--gray-500); font-size: 11.5px; margin: 0; }
+  .atomic-scope .join { align-items: center; color: var(--clay); display: flex; font-family: var(--mono); font-weight: 800; justify-content: center; }
+  .apply-guarantees { background: #fff; border: 1.5px solid var(--gray-300); border-radius: 10px; display: grid; grid-template-columns: 1fr 1fr; margin: 14px 0; overflow: hidden; }
+  .apply-guarantees .part { padding: 17px; }
+  .apply-guarantees .part + .part { border-left: 1px solid var(--gray-300); }
+  .apply-guarantees h3 { color: var(--slate); font-size: 20px; margin-bottom: 8px; }
+  .apply-guarantees ul { color: var(--gray-500); font-size: 12px; padding-left: 17px; }
+  .guarantee-scope { background: #edf1e7; border-left: 3px solid var(--olive); color: var(--op-accent); font-size: 12px; margin: 14px 0; padding: 10px 12px; }
+  .sync-closing { background: var(--slate); color: var(--text-on-dark); margin-top: 22px; padding: 24px; }
+  .sync-closing .label { color: var(--op-lime); font-family: var(--sans); font-size: 9px; letter-spacing: .07em; text-transform: uppercase; }
+  .sync-closing p { color: var(--text-on-dark); font-family: var(--serif); font-size: 24px; line-height: 1.25; margin: 9px 0 0; max-width: 780px; }
+  .workspace-transform { align-items: center; display: grid; gap: 18px; grid-template-columns: 1fr 90px 1.4fr; margin: 18px 0; }
+  .workspace-site, .workspace-result { background: #fff; border: 1.5px solid var(--gray-300); border-radius: 12px; padding: 17px; }
+  .workspace-site h3, .workspace-result h3 { font-size: 23px; }
+  .workspace-site > p, .workspace-result > p { color: var(--gray-500); font-size: 12px; margin-top: 4px; }
+  .workspace-sources { display: grid; gap: 6px; margin-top: 13px; }
+  .workspace-source { background: var(--gray-150); border-radius: 6px; font-size: 11px; padding: 8px; }
+  .workspace-arrow { color: var(--clay); font-family: var(--mono); font-size: 11px; text-align: center; }
+  .workspace-arrow::before { background: var(--clay); content: ""; display: block; height: 2px; margin-bottom: 7px; }
+  .workspace-outcomes { display: grid; gap: 7px; grid-template-columns: 1fr 1fr; margin-top: 13px; }
+  .workspace-outcome { background: #edf1e7; border-left: 3px solid var(--olive); font-size: 11px; padding: 8px; }
+  .workspace-outcome b { display: block; font-family: var(--serif); font-size: 14px; }
+  .workspace-planes { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; margin: 18px 0; }
+  .workspace-plane { background: #fff; border: 1.5px solid var(--gray-300); border-radius: 11px; overflow: hidden; }
+  .workspace-plane .top { background: var(--slate); color: #fff; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; padding: 10px 13px; }
+  .workspace-plane.data .top { background: var(--olive); color: #fff; }
+  .workspace-plane .row { border-top: 1px solid var(--gray-300); padding: 10px 13px; }
+  .workspace-plane .row b { display: block; font-family: var(--serif); font-size: 17px; }
+  .workspace-plane .row span { color: var(--gray-500); font-size: 12px; }
+  .workspace-bridge { background: #fff; border: 1px solid var(--clay); margin: 16px auto; max-width: 720px; padding: 13px; text-align: center; }
+  .workspace-bridge b { color: var(--clay); display: block; font-family: var(--serif); font-size: 18px; }
+  .workspace-bridge p { color: var(--gray-500); font-size: 12px; margin-top: 4px; }
+  .ownership-boundary { background: #fff; border: 2px solid var(--clay); margin: 18px 0; padding: 17px; }
+  .ownership-boundary h3 { color: var(--clay); font-size: 25px; }
+  .ownership-boundary > p { color: var(--gray-500); font-size: 13px; margin-top: 5px; }
+  .ownership-assets { display: grid; gap: 8px; grid-template-columns: repeat(3, 1fr); margin-top: 15px; }
+  .ownership-asset { background: #fff; border: 1px solid var(--gray-300); font-size: 12px; padding: 10px; }
+  .ownership-asset b { display: block; font-family: var(--serif); font-size: 15px; margin-bottom: 3px; }
+  .ownership-rules { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin-top: 16px; }
+  .ownership-rule { background: #fff; border: 1.5px solid var(--gray-300); border-radius: 9px; padding: 12px; }
+  .ownership-rule.good { background: #edf1e7; border-color: var(--olive); }
+  .ownership-rule h4 { font-family: var(--serif); font-size: 18px; font-weight: 500; }
+  .ownership-rule p { color: var(--gray-500); font-size: 12px; margin-top: 4px; }
+  .engine-planes { align-items: stretch; display: grid; gap: 12px; grid-template-columns: 1fr 46px 1fr; margin: 18px 0 10px; }
+  .engine-plane { background: var(--gray-150); border: 1px solid var(--gray-300); border-top: 5px solid var(--gray-500); padding: 18px; }
+  .engine-plane.data { background: #edf1e7; border-top-color: var(--clay); }
+  .engine-plane .label { color: var(--gray-500); font-family: var(--mono); font-size: 9px; letter-spacing: .07em; text-transform: uppercase; }
+  .engine-plane h3 { color: var(--slate); font-size: 21px; margin: 7px 0 6px; }
+  .engine-plane p { color: var(--gray-700); font-size: 12px; margin: 0; }
+  .engine-plane .items { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+  .engine-plane .items span { background: rgba(255,255,255,.78); border: 1px solid var(--gray-300); border-radius: 5px; font-size: 10px; padding: 4px 6px; }
+  .engine-plane-join { align-items: center; color: var(--clay); display: flex; font-family: var(--mono); font-size: 20px; font-weight: 800; justify-content: center; }
+  .operation-rail { background: var(--slate); border-radius: 0 0 9px 9px; color: #fff; display: grid; grid-template-columns: 170px 1fr; margin-bottom: 22px; }
+  .operation-rail b { color: var(--op-lime); font-family: var(--sans); font-size: 9px; letter-spacing: .06em; padding: 11px 13px; text-transform: uppercase; }
+  .operation-rail span { border-left: 1px solid var(--op-rule-dark); color: var(--muted-on-dark); font-size: 11.5px; padding: 11px 13px; }
+  .operation-spine-title { color: var(--slate); font-family: var(--serif); font-size: 24px; margin: 26px 0 5px; }
+  .operation-spine-dek { color: var(--gray-500); font-size: 13px; margin-bottom: 14px; }
+  .operation-spine { border: 1.5px solid var(--gray-300); border-radius: 11px; display: grid; grid-template-columns: repeat(4, 1fr); overflow: hidden; }
+  .operation-act { border-right: 1px solid var(--gray-300); min-height: 180px; padding: 16px; }
+  .operation-act:last-child { border-right: 0; }
+  .operation-act.persisted { background: #edf1e7; box-shadow: inset 0 4px 0 var(--olive); }
+  .operation-act.atomic { background: #edf1e7; box-shadow: inset 0 4px 0 var(--clay); }
+  .operation-act .mark { color: var(--clay); font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: .06em; }
+  .operation-act h3 { color: var(--slate); font-size: 18px; margin: 14px 0 7px; }
+  .operation-act ol { color: var(--gray-700); font-size: 10.5px; margin: 0; padding-left: 16px; }
+  .operation-act li + li { margin-top: 4px; }
+  .operation-spine-note { color: var(--gray-500); font-size: 10.5px; margin-top: 8px; }
+  .architecture-compare { background: #fff; border: 1.5px solid var(--gray-300); border-radius: 13px; margin: 22px 0; overflow: hidden; }
+  .architecture-compare .sides { display: grid; grid-template-columns: 1fr 1fr; }
+  .architecture-compare .side { padding: 21px; }
+  .architecture-compare .side.old { background: var(--gray-150); border-right: 1px solid var(--gray-300); }
+  .architecture-compare .side.new { background: #edf1e7; }
+  .architecture-compare h3 { font-size: 23px; }
+  .architecture-compare .side > p { color: var(--gray-500); font-size: 13px; margin: 5px 0 14px; }
+  .architecture-step { background: #fff; border-radius: 7px; font-size: 12px; margin-top: 7px; padding: 9px; }
+  .architecture-step b { display: block; font-family: var(--serif); font-size: 15px; margin-bottom: 2px; }
+  .architecture-compare .old .architecture-step { border-left: 3px solid var(--rust); }
+  .architecture-compare .new .architecture-step { border-left: 3px solid var(--olive); }
+  .architecture-outcome { background: var(--slate); color: #fff; padding: 15px 21px; text-align: center; }
+  .architecture-outcome { font-size: 16px; }
+  .architecture-outcome span { color: var(--muted-on-dark); }
+  .architecture-outcome strong { color: #fff; font-weight: 700; }
+  @media (max-width: 760px) { .engine-planes, .atomic-scope { grid-template-columns: 1fr; } .engine-plane-join, .atomic-scope .join { transform: rotate(90deg); } .operation-spine, .file-boundaries { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 640px) { .s1-evolution, .s1-outcome, .s2-pipeline, .s2-responsibilities, .tradeoff, .reconcile-promises, .file-checks, .workspace-planes, .ownership-rules, .apply-guarantees { grid-template-columns: 1fr; } .workspace-transform { grid-template-columns: 1fr; } .workspace-arrow { min-height: 26px; } .workspace-arrow::before { margin: 12px auto; transform: rotate(90deg); width: 30px; } .workspace-outcomes, .ownership-assets, .operation-spine, .file-boundaries { grid-template-columns: 1fr; } .architecture-compare .sides { grid-template-columns: 1fr; } .architecture-compare .side.old { border-bottom: 1px solid var(--gray-300); border-right: 0; } .s1-bridge::before { transform: rotate(90deg); } .s2-arrow { transform: rotate(90deg); } .s2-phase, .s2-plan { min-height: auto; } .safe-replacement .link { display: none; } .safe-replacement { grid-template-columns: 1fr; } .operation-rail { grid-template-columns: 1fr; } .operation-rail span { border-left: 0; border-top: 1px solid #444; } .operation-act, .file-boundary { border-bottom: 1px solid var(--gray-300); border-right: 0; } .apply-guarantees .part + .part { border-left: 0; border-top: 1px solid var(--gray-300); } }
+</style>
+</head>
+<body data-page="02">
+<div class="top-header" id="top-header"></div>
+<div class="page">
+
+  <nav>
+    <div class="label">On this page</div>
+    <a href="#tldr">Overview</a>
+    <a href="#s0">From Importer To Sync Engine</a>
+    <a href="#s1">From Site To Workspace</a>
+    <a href="#s2">Shared Lifecycle</a>
+    <a class="l2" href="#s2-lifecycle">Adopted Routes</a>
+    <a href="#s3">Adapters Plan, The Kernel Commits.</a>
+    <a href="#s4">Snapshot As The Safety Boundary</a>
+    <a href="#s5">Files Are First-Class Data</a>
+    <a href="#s6">Atomic Apply, Durable Operation</a>
+    <div class="sidebar-index" id="sidebar-index"></div>
+  </nav>
+
+  <main>
+    <header>
+      <div class="breadcrumb"><a href="index.html">SP Sync Engine</a><span class="separator">/</span><span>The Sync Engine</span></div>
+      <h1>The Sync Engine</h1>
+      <p class="subtitle">A unified pipeline for data sync</p>
+      <div class="tldr" id="tldr">
+        The Sync Engine coordinates two distinct responsibilities. The workspace plane establishes the connected
+        analytical context. The selected-tool plane turns complete source evidence into a bounded native change.
+        Persisted operation state connects each workflow's stages without pretending the complete lifecycle shares
+        one transaction.
+        <div class="stat-row" style="margin:14px 0 0;">
+          <div class="stat olive"><div class="num">9</div><div class="lbl">Social Point adapters</div></div>
+          <div class="stat"><div class="num">3</div><div class="lbl">canonical mutation modes</div></div>
+          <div class="stat"><div class="num">1</div><div class="lbl">submission mutation boundary</div></div>
+        </div>
+      </div>
+    </header>
+
+    <h2 id="s0"><span class="n">00</span>From Importer To Sync Engine</h2>
+    <p class="dek">The legacy Hive/SP importer was an arm's-length implementation. The evolved ask was for a
+      re-imagined integration: "Open in Analytics" from Social Point should feel like one click. Making it
+      trustworthy required a new connection between two independent production systems.</p>
+    <p>The Sync Engine delivers that supported connection. A signed action establishes trust and creates or resumes
+      the connected workspace. Metadata workflows converge its structure and access; selected-tool workflows then
+      reconcile one proven source scope and its files into Converlens.</p>
+    <div class="engine-planes">
+      <div class="engine-plane"><div class="label">Workspace plane</div><h3>Establish the analytical home</h3><p>Connector identity, catalogue, classifications and managed access converge through explicit metadata workflows.</p><div class="items"><span>Site binding</span><span>Projects</span><span>Spaces</span><span>Classifications</span><span>Membership scope</span></div></div>
+      <div class="engine-plane-join">+</div>
+      <div class="engine-plane data"><div class="label">Selected-tool plane</div><h3>Reconcile one proven scope</h3><p>Refresh the catalogue, revalidate the marked target, acquire a bounded snapshot, prepare files and atomically apply the canonical submission plan.</p><div class="items"><span>Target proof</span><span>Snapshot</span><span>Plan</span><span>Files</span><span>Native apply</span></div></div>
+    </div>
+    <div class="operation-rail"><b>Durable operation plane</b><span>Persist phases, retries, warnings, cleanup and terminal outcome across the selected-tool workflow.</span></div>
+    <div class="architecture-compare">
+      <div class="sides">
+        <div class="side old"><h3>Earlier Hive/SP importer</h3><p>A practical selected-tool import path built around the browser-facing system.</p><div class="architecture-step"><b>User login</b>Site URL, email and password.</div><div class="architecture-step"><b>Rendered-page tokens</b>Browser/page behaviour supplied the access path.</div><div class="architecture-step"><b>One tool import</b>Fetch, transform and create project, space and submissions.</div><div class="architecture-step"><b>Serial follow-up</b>Files and processing continued as separate steps.</div></div>
+        <div class="side new"><h3>SP Sync Engine</h3><p>A supported connection designed for trusted, repeatable analytics.</p><div class="architecture-step"><b>Signed handoff</b>Short-lived verification before callback or mutation.</div><div class="architecture-step"><b>Connected workspace</b>Catalogue, classifications and access converge first.</div><div class="architecture-step"><b>Selected-tool reconciliation</b>Complete source evidence becomes an explicit change plan.</div><div class="architecture-step"><b>Durable completion</b>Records, media and follow-up keep a consistent outcome.</div></div>
+      </div>
+      <div class="architecture-outcome"><span>The importer moved data.</span> <strong>The Sync Engine establishes and maintains a trustworthy analytical connection.</strong></div>
+    </div>
+
+    <h3 class="operation-spine-title">One connected lifecycle, four acts</h3>
+    <p class="operation-spine-dek">Connection establishment creates the analytical context. A selected-tool
+      operation then proves one source scope, performs an atomic canonical apply and carries remaining work to an
+      explicit outcome.</p>
+    <div class="operation-spine">
+      <div class="operation-act"><span class="mark">ACT 01 · ESTABLISH</span><h3>Prove the context</h3><ol><li>Verify the signed connection</li><li>Converge workspace metadata and access</li><li>Bind one Site to one connector</li></ol></div>
+      <div class="operation-act persisted"><span class="mark">ACT 02 · ACQUIRE</span><h3>Prove the source scope</h3><ol><li>Refresh the complete catalogue</li><li>Revalidate the marked target</li><li>Acquire one bounded snapshot</li></ol></div>
+      <div class="operation-act atomic"><span class="mark">ACT 03 · APPLY</span><h3>Prepare, then commit</h3><ol><li>Conform and plan</li><li>Transfer and stage required files</li><li>Atomically apply the canonical native plan</li></ol></div>
+      <div class="operation-act persisted"><span class="mark">ACT 04 · COMPLETE</span><h3>Resolve the outcome</h3><ol><li>Persist warnings and finalisation</li><li>Clean staged or removed objects</li><li>Terminalise the operation</li></ol></div>
+    </div>
+    <p class="operation-spine-note">Clay marks the atomic canonical apply. Olive marks persisted stages that may complete or recover independently.</p>
+
+    <h2 id="s1"><span class="n">01</span>From Site To Workspace</h2>
+    <p class="dek">Projects, supported tools, source classifications and staff access converge into one analytical home.</p>
+    <p>A signed Social Point link does more than hand a user into Converlens. It creates or resumes one protected
+      workspace for the Site, materialises the analytical structure around its source data, and gives the initiating
+      user the access needed to arrive in the right place.</p>
+    <div class="workspace-transform">
+      <div class="workspace-site"><h3>Verified Social Point Site</h3><p>Authenticated source evidence defines the connected context.</p><div class="workspace-sources"><div class="workspace-source">Projects and supported tools</div><div class="workspace-source">Project option assignments</div><div class="workspace-source">Staff eligibility evidence</div></div></div>
+      <div class="workspace-arrow">MATERIALISE AND CONVERGE</div>
+      <div class="workspace-result"><h3>Converlens workspace</h3><p>One native analytical home, protected by source ownership markers.</p><div class="workspace-outcomes"><div class="workspace-outcome"><b>Projects</b>Invite-only source projects</div><div class="workspace-outcome"><b>Tool spaces</b>Private supported spaces</div><div class="workspace-outcome"><b>Classifications</b>Categories, locations and groups</div><div class="workspace-outcome"><b>Access</b>Workspace and project memberships</div></div></div>
+    </div>
+    <p>Workspace structure and selected-tool data have different jobs. Metadata refresh converges catalogue,
+      classifications and staff access. A selected-tool sync does not repeat that entire workflow: it refreshes the
+      complete catalogue and revalidates its marked target before data apply.</p>
+    <div class="workspace-planes">
+      <div class="workspace-plane"><div class="top">WORKSPACE PLANE</div><div class="row"><b>Catalogue</b><span>Projects, supported tools and source option assignments.</span></div><div class="row"><b>Classifications</b><span>Private categories, namespaced labels and project links.</span></div><div class="row"><b>Staff access</b><span>Exact workspace and marked-project memberships.</span></div></div>
+      <div class="workspace-plane data"><div class="top">DATA PLANE</div><div class="row"><b>Selected tool</b><span>One marked space and its complete source snapshot.</span></div><div class="row"><b>Conform and plan</b><span>Tool-specific source state becomes explicit changes.</span></div><div class="row"><b>Canonical commit</b><span>Locked, source-owned native mutation.</span></div></div>
+    </div>
+    <div class="workspace-bridge"><b>Every selected-tool sync refreshes the complete catalogue first.</b><p>Topology or marker changes invalidate the target rather than silently redirecting data into the wrong Converlens space. Staff and membership convergence remain part of metadata refresh.</p></div>
+    <p>Connected resources carry source ownership while the connector is active. That ownership identifies exactly
+      which native objects the SP-CL connector may reconcile, while guarded ordinary API paths reject attempts to
+      forge or change protected Social Point ownership fields.</p>
+    <div class="ownership-boundary"><h3>Protected while connected</h3><p>Projects, spaces, classifications, submissions and files carry explicit Social Point provenance. Membership reconciliation is the deliberate exception: it owns the complete desired membership set within the connected workspace and marked-project scope, not individually marked membership rows.</p><div class="ownership-assets"><div class="ownership-asset"><b>Projects</b>Imported, invite-only source projects.</div><div class="ownership-asset"><b>Spaces and blocks</b>Private supported tool spaces and their structure.</div><div class="ownership-asset"><b>Classifications</b>Reserved source categories, labels and project links.</div><div class="ownership-asset"><b>Membership scope</b>Whole-set authority over managed workspace and marked-project access.</div><div class="ownership-asset"><b>Submissions and files</b>Source-owned records and provenance.</div><div class="ownership-asset"><b>Connector identity</b>One verified Site binding.</div></div><div class="ownership-rules"><div class="ownership-rule good"><h4>Complete evidence can reconcile</h4><p>Omitted source-owned catalogue objects can be removed only after valid complete catalogue evidence.</p></div><div class="ownership-rule"><h4>Ordinary content stays ordinary, with one scoped exception</h4><p>Unmarked native resources are not claimed merely because they are nearby. Membership reconciliation owns the full desired set inside its managed scope.</p></div></div></div>
+
+    <h2 id="s2"><span class="n">02</span>From Specialised Ingress Paths To A Shared Lifecycle</h2>
+    <p class="dek">Converlens evolved from several purpose-built submission routes into one reusable lifecycle for
+      the paths now on the shared foundation.</p>
+    <p>Interactive surveys, offline batches, imports and provider adapters each preserved the needs of their
+      context. Their lifecycle responsibilities were distributed differently: identity, projections, processing,
+      counts, contact handling and removal did not all travel through the same contract. The Sync Engine establishes one
+      mutation lifecycle so source-specific tools can keep their expertise while inheriting one Converlens standard
+      for the work that must stay consistent.</p>
+    <div class="s1-evolution">
+      <div class="s1-before"><span><b>Interactive</b>Product creation</span><span><b>Bulk batch</b>Offline volume</span><span><b>Import / append</b>Fast ingestion</span><span><b>Providers</b>Source-specific work</span></div>
+      <div class="s1-bridge">CONVERGE</div>
+      <div class="s1-lifecycle"><h3>Shared mutation lifecycle</h3><div class="band"><span>identity</span><span>ownership</span><span>locks</span><span>projections</span><span>counts</span><span>hashes</span><span>finalisation</span><span>removal</span></div></div>
+    </div>
+    <div class="s1-scope"><b>Adoption today:</b> ordinary interactive creation and Social Point tools use the shared kernel. Other ingress paths remain deliberate compatibility paths.</div>
+
+    <div class="s1-outcome" id="s2-lifecycle">
+      <div class="number">9<small>SP TOOL ADAPTERS</small></div>
+      <div class="statement">
+        <h3>Interactive creation and nine Social Point adapters now share one canonical submission boundary.</h3>
+        <p>Adapters still own tool-specific structure and file preparation, but all submission-row creation, update
+          and removal passes through the canonical kernel.</p>
+        <div class="pillrow"><span class="pill">standard interactive creation</span><span class="pill">9 Social Point tools</span><span class="pill">one kernel</span></div>
+      </div>
+    </div>
+
+    <h2 id="s3"><span class="n">03</span>Adapters Plan, The Kernel Commits.</h2>
+    <p class="dek">Tool-specific structure and file preparation remain with the adapter. Canonical submission-row
+      mutation stops at one clear boundary: the adapter explains the source, and the kernel applies that plan.</p>
+    <p>Each adapter starts with a complete source snapshot. It validates that payload, maps it into a canonical
+      shape, and compares it with the destination state. The planner then expresses the exact work as explicit
+      create, update and remove operations. No adapter writes submission rows directly.</p>
+    <div class="s2-pipeline">
+      <div class="s2-phase"><span class="s2-chit tool">TOOL</span><h4>Snapshot</h4><p>Complete source evidence.</p></div>
+      <div class="s2-arrow">›</div>
+      <div class="s2-phase"><span class="s2-chit tool">TOOL</span><h4>Conform</h4><p>Canonical source state.</p></div>
+      <div class="s2-arrow">›</div>
+      <div class="s2-plan">
+        <div class="s2-plan-head"><span class="s2-chit tool">TOOL</span><h4>Plan</h4></div>
+        <div class="s2-plan-row"><span class="s2-chit create">CREATE</span><div><h5>Create</h5><p>Create the planned source-owned submission.</p></div></div>
+        <div class="s2-plan-row"><span class="s2-chit update">UPDATE</span><div><h5>Update</h5><p>Update only the planned source-owned fields.</p></div></div>
+        <div class="s2-plan-row"><span class="s2-chit remove">REMOVE</span><div><h5>Remove</h5><p>Remove only records in the locked matching source scope.</p></div></div>
+      </div>
+      <div class="s2-arrow">›</div>
+      <div class="s2-phase kernel"><span class="s2-chit kernel">KERNEL</span><h4>Commit</h4><p>Apply one atomic native-state decision.</p></div>
+    </div>
+    <p>The resulting plan is an inspectable handoff, not an opaque import. It bounds what the kernel may create,
+      what source-owned fields it may update, and what it may remove within the matching source scope. The kernel
+      validates that plan, locks the scope, applies the changes, derives immediate native state and commits one
+      canonical submission outcome. Deferred removal state continues from committed finalisation intent.</p>
+    <div class="s2-responsibilities">
+      <div class="side"><div class="stamp">ADAPTER AND PLANNER</div><h3>Explain the source</h3><ul><li>Acquire complete evidence</li><li>Validate wire shape and source identity</li><li>Conform tool-specific data</li><li>Propose explicit changes</li></ul></div>
+      <div class="side kernel"><div class="stamp">CANONICAL KERNEL</div><h3>Protect submission state</h3><ul><li>Validate ownership and constraints</li><li>Lock the destination scope</li><li>Apply the canonical plan atomically</li><li>Maintain immediate projections and SP removal intent</li></ul></div>
+    </div>
+
+    <h2 id="s4"><span class="n">04</span>Snapshot As The Safety Boundary</h2>
+    <p class="dek">Each selected source scope is acquired as one bounded snapshot, validated as a whole, then turned
+      into one controlled native change plan.</p>
+    <p>The integration audit found no generic incremental contract capable of proving complete selected-scope state
+      across relationship-only changes, equal-precision updates, backdated writes, hard deletes and moving source
+      data. The bridge therefore accepts one complete bounded snapshot, validates it, and turns valid evidence into
+      an explicit plan. Tool-specific conformance may preserve existing values when a source field remains uncertain;
+      the resulting native plan is what the kernel applies atomically.</p>
+    <div class="snapshot-gate"><div class="label">Selected-tool JSON evidence</div><div class="proof">Complete snapshot<br>maximum 50,000 records / 25 MiB</div><div class="pass">Validated: conformance and planning may proceed</div><div class="stop">Invalid, oversized or incomplete: no selected-tool native apply</div></div>
+    <div class="tradeoff"><div><h4>Accepted source contract</h4><ul><li>One complete selected-tool scope</li><li>No paging or partial reconciliation</li><li>Oversized sources remain unsupported at that scope</li></ul></div><div><h4>Converlens guarantees</h4><ul><li>No deletion inferred from partial evidence</li><li>One explicit owned change plan</li><li>No partial canonical submission apply</li></ul></div></div>
+    <div class="file-ledger-note"><b>Separate file limits:</b> selected media is bounded independently to 1,000 files, 1 GiB cumulatively and 25 MiB per file. Catalogue responses use their own limits.</div>
+    <div class="reconcile-promises"><div class="part"><h3>Proof before removal</h3><p>A missing record means absent only within a proven complete scope. That turns reconciliation from a best-effort import into a source-owned decision.</p></div><div class="part"><h3>Clean state after removal</h3><p>Once absence is proven, canonical removal and its committed finalisation intent clear source-owned derived state that database cascades do not comprehensively cover, while preserving relationships that remain meaningful.</p></div></div>
+
+    <h2 id="s5"><span class="n">05</span>Files Are First-Class Data</h2>
+    <p class="dek">Reliable media synchronisation, not attachment copying.</p>
+    <p>Files cross both database and object-storage boundaries before becoming part of a canonical submission. The
+      current workflow supports Form App, Social Map, Conversation, Forum and Gather. Atomic native state is paired
+      with persisted transfer intent, bounded retry and compensating cleanup for external storage.</p>
+    <div class="file-boundaries">
+      <div class="file-boundary durable"><span class="mark">01 · ADMIT</span><h3>Persist transfer intent</h3><p>Create the batch, per-file rows, bounded jobs and operation phase together.</p><span class="property">Database transaction</span></div>
+      <div class="file-boundary external"><span class="mark">02 · TRANSFER</span><h3>Verify and stage bytes</h3><p>Use one credential-free HTTPS location, enforce byte limits and preserve per-file outcomes.</p><span class="property">External I/O, retryable</span></div>
+      <div class="file-boundary atomic"><span class="mark">03 · APPLY</span><h3>Commit native references</h3><p>Apply successful files and the canonical submission plan inside the adapter transaction.</p><span class="property">Atomic database apply</span></div>
+      <div class="file-boundary durable resolve"><span class="mark">04 · RESOLVE</span><h3>Compensate and terminalise</h3><p>Retain usable prior content, clean staged objects and persist warning or success.</p><span class="property">Durable recovery</span></div>
+    </div>
+    <p class="file-boundary-caption">Object storage cannot roll back with PostgreSQL. The design therefore combines atomic native state with persisted intent and compensating cleanup.</p>
+    <div class="file-ledger-note"><b>Durable while recovery remains active:</b> per-file state, bounded attempts, warnings and staging pointers remain persisted while transfer, retry, finalisation or cleanup requires them. Detailed recovery rows may retire after cleanup.</div>
+    <div class="file-trust"><h3>Private by default. Provenance by design.</h3><p>The Social Point file transport validates the exact source occurrence before transfer or deletion, retains shared objects, and does not send the provider bearer token when fetching the provider-issued HTTPS location.</p><div class="file-checks"><div class="file-check"><b>Occurrence-bound</b>Project, tool, record, element and version context.</div><div class="file-check"><b>Redirect-safe</b>One provider-issued HTTPS location, no credential forwarding or redirect chain.</div><div class="file-check"><b>Byte-checked</b>Declared and actual length must agree.</div><div class="file-check"><b>Shared-object safe</b>Keep an object when another version still owns it.</div></div></div>
+    <div class="safe-replacement"><div class="node"><strong>Existing destination file</strong><span>Known usable version remains attached.</span></div><div class="link"></div><div class="node safe"><strong>Validated replacement</strong><span>Only validated source-owned versions can replace or remove it.</span></div></div>
+    <div class="file-warning"><b>Failure has a persisted operation outcome:</b> unavailable, unsafe, exhausted or deadline-stranded transfers become warnings while the operation requires recovery. They do not erase the current destination content.</div>
+
+    <h2 id="s6"><span class="n">06</span>Atomic Where It Must Be. Durable Across The Whole Operation.</h2>
+    <p class="dek">The complete sync is not one database transaction. It is a staged operation whose critical Social
+      Point submission apply is atomic and whose surrounding work is persisted, bounded and recoverable.</p>
+    <p>Atomicity protects the native submission decision. Operation state protects the catalogue refresh, file
+      transfers, warnings, deferred finalisation, compensating cleanup and terminal outcome that necessarily happen
+      across separate transactions and external systems.</p>
+
+    <div class="atomic-scope">
+      <div class="part"><h3>Before the apply</h3><p>Catalogue state, file intent and transferred or staged bytes may already be persisted.</p></div>
+      <div class="join">+</div>
+      <div class="part atomic"><h3>Canonical SP apply</h3><p>Owned submission changes, immediate projections and SP removal intent commit together.</p></div>
+    </div>
+    <div class="atomic-scope">
+      <div class="part atomic"><h3>Rollback guarantee</h3><p>A failed canonical SP apply leaves none of its native submission changes committed.</p></div>
+      <div class="join">+</div>
+      <div class="part"><h3>After the apply</h3><p>Deferred finalisation, warnings, storage cleanup and operation terminalisation continue from persisted state.</p></div>
+    </div>
+
+    <div class="apply-guarantees">
+      <div class="part"><h3>Atomic canonical submission state</h3><ul><li>Owned Social Point creates, updates and removals</li><li>Counts, hashes and immediate email and location projections</li><li>SP removal records and their durable finalisation intent</li></ul></div>
+      <div class="part"><h3>Durable surrounding operation</h3><ul><li>Previously committed catalogue state and revalidated target</li><li>File ledger, retries, warnings and staged storage objects</li><li>Deferred removal aggregates, retained relationships and cleanup</li><li>Explicit success, warning or failure terminalisation</li></ul></div>
+    </div>
+    <div class="guarantee-scope"><b>Scope of the guarantee:</b> transactional job coupling here applies to canonical
+      Social Point mutation and removal work. It does not claim that interactive submission follow-up or the entire
+      selected-tool operation shares the same transaction.</div>
+    <div class="future-note"><b>Future evolution, not current scope:</b> a better Social Point source-change contract could replace acquisition while preserving the conformance, planning and kernel boundary.</div>
+
+    <div class="sync-closing"><div class="label">What one click establishes</div><p>One verified action opens the correct analytical home, reconciles only proven source-owned scope, preserves usable content when media replacement fails, and leaves a persisted outcome whenever work must continue or recover.</p></div>
+
+    <div class="journey-navigation" id="journey-navigation"></div>
+    <footer class="content-footer" id="content-footer"></footer>
+  </main>
+</div>
+</body>
+</html>

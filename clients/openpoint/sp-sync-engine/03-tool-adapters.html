@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tool Adapters - SP Sync Engine</title>
+<link rel="stylesheet" href="assets/shared.css?v=white-signal-1">
+<script src="assets/site.js?v=tool-adapters-1" defer></script>
+<style>
+  /* Page-specific visuals for the Tool Adapters story. */
+  .opening-compare { display: grid; grid-template-columns: 1fr 42px 1fr; align-items: stretch; margin: 20px 0 14px; }
+  .opening-era { padding: 17px; border: 1.5px solid var(--gray-300); border-radius: 9px; background: #fff; }
+  .opening-era.after { border-color: var(--slate); background: var(--slate); color: var(--text-on-dark); }
+  .opening-era .label, .section-label { display: block; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gray-500); }
+  .opening-era.after .label { color: var(--op-lime); }
+  .opening-era h3 { margin: 12px 0 7px; font-family: var(--serif); font-size: 21px; font-weight: 500; }
+  .opening-era p { margin: 0; color: var(--gray-500); font-size: 12px; }
+  .opening-era.after h3 { color: var(--text-on-dark); }
+  .opening-era.after p { color: var(--muted-on-dark); }
+  .opening-join { display: grid; place-items: center; color: var(--clay); font-family: var(--serif); font-size: 22px; }
+  .promise-rail { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
+  .promise { min-height: 118px; padding: 14px; border: 1px solid var(--gray-300); border-top: 4px solid var(--olive); border-radius: 8px; background: #fff; }
+  .promise:nth-child(2) { border-top-color: var(--clay); }
+  .promise:nth-child(3) { border-top-color: var(--op-info); }
+  .promise:nth-child(4) { border-top-color: var(--slate); }
+  .promise b { display: block; margin-bottom: 7px; font-family: var(--serif); font-size: 16px; font-weight: 500; }
+  .promise span { color: var(--gray-500); font-size: 11px; }
+  .trigger-note { margin-top: 10px; padding: 11px 13px; background: var(--slate); color: var(--text-on-dark); font-size: 12px; }
+  .trigger-note b { color: var(--op-lime); }
+
+  .table-wrap { margin-top: 18px; overflow-x: auto; border: 1.5px solid var(--gray-300); border-radius: 9px; }
+  .adapter-table { width: 100%; min-width: 780px; border-collapse: collapse; background: #fff; }
+  .adapter-table th { padding: 10px; background: var(--slate); color: var(--text-on-dark); font-family: var(--sans); font-size: 9px; letter-spacing: .07em; text-align: left; text-transform: uppercase; }
+  .adapter-table td { padding: 10px; border-bottom: 1px solid var(--gray-300); font-size: 11.5px; vertical-align: top; }
+  .adapter-table tr:last-child td { border-bottom: 0; }
+  .adapter-table td:first-child { font-family: var(--serif); font-size: 14px; font-weight: 600; }
+  .adapter-table .yes { color: var(--olive); font-weight: 700; }
+  .catalogue-note { margin-top: 11px; padding: 12px 14px; border-left: 3px solid var(--clay); background: #fff; font-size: 12px; }
+
+  .anatomy { display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 19px; border: 1.5px solid var(--gray-300); border-radius: 9px; overflow: hidden; }
+  .anatomy-step { min-height: 150px; padding: 14px 12px; border-right: 1px solid var(--gray-300); background: #fff; }
+  .anatomy-step:last-child { border-right: 0; }
+  .anatomy-step.pure { background: #edf1e7; }
+  .anatomy-step code { display: block; color: var(--clay); font-family: var(--mono); font-size: 10px; }
+  .anatomy-step h3 { margin: 24px 0 7px; font-family: var(--serif); font-size: 18px; font-weight: 500; }
+  .anatomy-step p { margin: 0; color: var(--gray-500); font-size: 11px; }
+  .planner-note { padding: 11px 13px; background: var(--slate); color: var(--text-on-dark); font-size: 12px; text-align: center; }
+  .planner-note b { color: var(--op-lime); }
+
+  .swimlanes { margin-top: 18px; border: 1.5px solid var(--gray-300); border-radius: 9px; overflow: hidden; background: #fff; }
+  .lane { display: grid; grid-template-columns: 145px 1fr; border-bottom: 1px solid var(--gray-300); }
+  .lane:last-child { border-bottom: 0; }
+  .lane-name { padding: 13px; background: var(--slate); color: var(--text-on-dark); font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .06em; }
+  .lane-flow { display: flex; overflow-x: auto; }
+  .lane-flow span { position: relative; min-width: 135px; padding: 13px 16px; color: var(--gray-700); font-size: 11px; }
+  .lane-flow span:not(:last-child)::after { content: ">"; position: absolute; right: -3px; color: var(--clay); font-weight: 800; }
+  .territories { display: grid; grid-template-columns: 1fr 1fr; margin-top: 12px; border: 1.5px solid var(--gray-300); border-radius: 9px; overflow: hidden; }
+  .territory { padding: 17px; background: #fff; }
+  .territory:last-child { background: var(--slate); color: var(--text-on-dark); }
+  .territory h3 { margin: 7px 0 10px; font-family: var(--serif); font-size: 20px; font-weight: 500; }
+  .territory:last-child h3 { color: var(--text-on-dark); }
+  .territory:last-child .section-label { color: var(--op-lime); }
+  .territory ul { margin: 0; padding-left: 17px; color: var(--gray-500); font-size: 11.5px; }
+  .territory:last-child ul { color: var(--muted-on-dark); }
+  .commit-note { margin-top: 11px; padding: 12px 14px; border-left: 3px solid var(--op-info); background: #e9eef6; font-size: 12px; }
+
+  .case-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+  .case { min-height: 195px; padding: 16px; border: 1.5px solid var(--gray-300); border-radius: 9px; background: #fff; }
+  .case .section-label { color: var(--clay); }
+  .case h3 { margin: 10px 0 8px; font-family: var(--serif); font-size: 19px; font-weight: 500; }
+  .case p { margin: 0; color: var(--gray-500); font-size: 11.5px; }
+  .preserve-note { margin-top: 12px; padding: 13px 15px; border-left: 3px solid var(--olive); background: #edf1e7; font-size: 12px; }
+
+  .file-matrix { display: grid; gap: 1px; margin-top: 18px; border: 1.5px solid var(--gray-300); border-radius: 9px; overflow: hidden; background: var(--gray-300); }
+  .file-row { display: grid; grid-template-columns: 120px 120px 1fr; background: #fff; }
+  .file-row > * { padding: 11px; font-size: 11px; }
+  .file-row b { font-family: var(--mono); font-size: 10px; }
+  .file-row span:nth-child(2) { color: var(--olive); font-weight: 700; }
+  .file-row.head { background: var(--slate); color: var(--text-on-dark); }
+  .file-row.head span:nth-child(2) { color: var(--text-on-dark); }
+  .file-controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+  .file-control { padding: 13px; border: 1px solid var(--gray-300); border-radius: 8px; background: #fff; }
+  .file-control b { display: block; margin-bottom: 5px; color: var(--clay); font-family: var(--mono); font-size: 10px; }
+  .file-control span { color: var(--gray-700); font-size: 11px; }
+  .file-warning { margin-top: 11px; padding: 12px 14px; background: var(--slate); color: var(--text-on-dark); font-size: 12px; }
+  .file-warning b { color: var(--op-lime); }
+
+  .consequence-map { display: grid; grid-template-columns: 1fr 1fr; margin-top: 18px; border: 1.5px solid var(--gray-300); border-radius: 9px; overflow: hidden; }
+  .consequence { padding: 18px; background: #f4ece9; }
+  .consequence:last-child { border-left: 1px solid var(--gray-300); background: #edf1e7; }
+  .consequence h3 { margin: 8px 0 10px; font-family: var(--serif); font-size: 21px; font-weight: 500; }
+  .consequence ul { margin: 0; padding-left: 18px; font-size: 11.5px; }
+  .authority-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 11px; }
+  .authority-note { padding: 13px 15px; border-left: 3px solid var(--clay); background: #fff; font-size: 12px; }
+  .authority-note.membership { border-left-color: var(--op-info); }
+  .authority-note b { color: var(--slate); }
+
+  .proof-lattice { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
+  .proof-cell { min-height: 105px; padding: 13px; border: 1.5px solid var(--gray-300); border-radius: 8px; background: #fff; }
+  .proof-cell b { display: block; margin-bottom: 8px; font-family: var(--serif); font-size: 16px; font-weight: 500; }
+  .proof-cell span { color: var(--gray-500); font-family: var(--mono); font-size: 9px; }
+  .proof-summary { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+  .proof-summary span { padding: 6px 9px; border-radius: 999px; background: var(--slate); color: var(--text-on-dark); font-family: var(--mono); font-size: 9px; }
+
+  .programme-close { margin-top: 18px; padding: 28px; background: var(--slate); color: var(--text-on-dark); }
+  .programme-close .section-label { color: var(--op-lime); }
+  .programme-close blockquote { max-width: 820px; margin: 15px 0; font-family: var(--serif); font-size: clamp(25px, 4vw, 38px); font-weight: 500; line-height: 1.14; }
+  .programme-close p { max-width: 820px; margin: 0; color: var(--muted-on-dark); font-size: 12px; }
+
+  @media (max-width: 760px) {
+    .opening-compare { grid-template-columns: 1fr; }
+    .opening-join { min-height: 34px; transform: rotate(90deg); }
+    .promise-rail, .case-grid, .file-controls, .proof-lattice { grid-template-columns: 1fr 1fr; }
+    .anatomy { grid-template-columns: 1fr; }
+    .anatomy-step { min-height: auto; border-right: 0; border-bottom: 1px solid var(--gray-300); }
+    .lane { grid-template-columns: 1fr; }
+    .lane-name { padding: 10px 13px; }
+    .territories, .consequence-map, .authority-notes { grid-template-columns: 1fr; }
+    .territory:last-child, .consequence:last-child { border-left: 0; border-top: 1px solid var(--gray-300); }
+  }
+  @media (max-width: 480px) {
+    .promise-rail, .case-grid, .file-controls, .proof-lattice { grid-template-columns: 1fr; }
+    .file-row { grid-template-columns: 82px 76px 1fr; }
+    .file-row > * { padding: 9px 7px; font-size: 9.5px; }
+  }
+</style>
+</head>
+<body data-page="03">
+<div class="top-header" id="top-header"></div>
+<div class="page">
+  <nav>
+    <div class="label">On this page</div>
+    <a href="#tldr">Overview</a>
+    <a href="#s1">What The Programme Adds</a>
+    <a href="#s2">Nine Roots, One Catalogue</a>
+    <a href="#s3">One Adapter Anatomy</a>
+    <a href="#s4">Responsibility Boundary</a>
+    <a href="#s5">Where Source Semantics Differ</a>
+    <a href="#s6">Files Across Five Adapters</a>
+    <a href="#s7">Authority And Consequences</a>
+    <a href="#s8">Programme Evidence</a>
+    <a href="#s9">The Implemented Outcome</a>
+    <div class="sidebar-index" id="sidebar-index"></div>
+  </nav>
+
+  <main>
+    <header>
+      <div class="breadcrumb"><a href="index.html">SP Sync Engine</a><span class="separator">/</span><span>Tool Adapters</span></div>
+      <h1>Tool Adapters</h1>
+      <p class="subtitle">From one-off import to durable connector.</p>
+      <div class="tldr" id="tldr">
+        Nine root adapters persist Social Point source identity and support repeatable reconciliation of an existing
+        Converlens destination. Selected-tool sync is initiated explicitly, then runs as a durable queued operation
+        while Social Point remains authoritative for the activity itself.
+      </div>
+    </header>
+
+    <h2 id="s1"><span class="n">01</span>What The Adapter Programme Adds</h2>
+    <p class="dek">The change is continuity. The legacy importer creates a destination; the adapter programme keeps
+      a known source identity and can reconcile that destination again through the same controlled contracts.</p>
+    <div class="opening-compare">
+      <div class="opening-era">
+        <span class="label">One-off importer</span>
+        <h3>Create a new destination</h3>
+        <p>A user-initiated import runs through a mixed-purpose flow and treats the destination as a fresh build.</p>
+      </div>
+      <div class="opening-join">&gt;</div>
+      <div class="opening-era after">
+        <span class="label">Durable connector</span>
+        <h3>Reconcile a known destination</h3>
+        <p>An explicit command starts a durable operation against persisted source identity and owned native state.</p>
+      </div>
+    </div>
+    <div class="promise-rail">
+      <div class="promise"><b>Nine roots</b><span>One catalogue recognises nine selectable adapter types.</span></div>
+      <div class="promise"><b>Tool contracts</b><span>Each source validates and preserves the semantics it owns.</span></div>
+      <div class="promise"><b>Explicit plans</b><span>Pure planners express create, update, remove and preserve decisions.</span></div>
+      <div class="promise"><b>Durable work</b><span>Persisted operation state carries retries, warnings and outcomes.</span></div>
+    </div>
+    <div class="trigger-note"><b>Current trigger:</b> linking queues an initial metadata refresh. Selected-tool data
+      reconciliation is initiated through an explicit command, then executed as durable queued work.</div>
+
+    <h2 id="s2"><span class="n">02</span>Nine Roots, One Catalogue</h2>
+    <p class="dek">The catalogue recognises nine selectable root adapters. Each has the same programme structure,
+      while its source shape, file capability and representation rules remain explicit.</p>
+    <div class="table-wrap">
+      <table class="adapter-table">
+        <thead><tr><th>Root adapter</th><th>Source handle</th><th>Source shape</th><th>Files</th><th>Verified distinction</th></tr></thead>
+        <tbody>
+          <tr><td>Quick Poll</td><td><code>survey</code></td><td>Structured</td><td>No</td><td>Common bounded snapshot contract</td></tr>
+          <tr><td>Form App</td><td><code>the_hive_form</code></td><td>Versioned definition</td><td class="yes">Yes</td><td>Represented current definition and hidden-choice fidelity</td></tr>
+          <tr><td>Visioner</td><td><code>the_hive_vision</code></td><td>Structured</td><td>No</td><td>Common adapter contract</td></tr>
+          <tr><td>Question &amp; Answer</td><td><code>the_hive_qa</code></td><td>Structured</td><td>No</td><td>Represented analytical attributes</td></tr>
+          <tr><td>Social Map</td><td><code>the_hive_social_map</code></td><td>Structured</td><td class="yes">Yes</td><td>Category, form and form-version ownership</td></tr>
+          <tr><td>Budget</td><td><code>the_hive_budgeting</code></td><td>Structured</td><td>No</td><td>Concrete bounded-acquisition enforcement</td></tr>
+          <tr><td>Conversation</td><td><code>core_conversation</code></td><td>Relationship-rich</td><td class="yes">Yes</td><td>Parent, container and depth fields</td></tr>
+          <tr><td>Forum</td><td><code>the_hive_forum</code></td><td>Relationship-rich</td><td class="yes">Yes</td><td>Validated backing Conversation</td></tr>
+          <tr><td>Gather</td><td><code>the_hive_stories</code></td><td>Relationship-rich</td><td class="yes">Yes</td><td>Comments child and minimal relationship closure</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="catalogue-note"><b>Folded support:</b> Gather comments is a validated child capability of Gather.
+      Forum similarly requires a validated backing Conversation. Those supporting tools are not materialised as
+      additional destinations. Legacy Form and MetroQuest remain outside the supported catalogue.</div>
+
+    <h2 id="s3"><span class="n">03</span>One Adapter Anatomy</h2>
+    <p class="dek">Every root adapter uses the same five-part implementation shape. Tool semantics vary; the route
+      from typed source evidence to an explicit native plan does not.</p>
+    <div class="anatomy">
+      <div class="anatomy-step"><code>index.ts</code><h3>Register</h3><p>Expose the adapter contract and canonical type.</p></div>
+      <div class="anatomy-step"><code>acquire.ts</code><h3>Validate</h3><p>Accept bounded bytes and strict source evidence.</p></div>
+      <div class="anatomy-step"><code>conform.ts</code><h3>Represent</h3><p>Build deterministic tool-specific analytical state.</p></div>
+      <div class="anatomy-step pure"><code>planner.ts</code><h3>Compare</h3><p>Produce typed change without database access.</p></div>
+      <div class="anatomy-step"><code>apply.ts</code><h3>Execute</h3><p>Lock, revalidate and mutate adapter-owned state.</p></div>
+    </div>
+    <div class="planner-note"><b>Planner invariant:</b> represented source state plus an already loaded destination
+      projection becomes an explicit create, update, remove or preserve plan.</div>
+
+    <h2 id="s4"><span class="n">04</span>Responsibility Boundary</h2>
+    <p class="dek">The adapter and shared kernel cooperate inside one durable operation without pretending to own
+      the same native state. Adapters retain tool structure and files; the kernel standardises canonical submission
+      mutation.</p>
+    <div class="swimlanes">
+      <div class="lane"><div class="lane-name">SOURCE EDGE</div><div class="lane-flow"><span>Acquire</span><span>Conform</span><span>Pure plan</span></div></div>
+      <div class="lane"><div class="lane-name">ADAPTER APPLY</div><div class="lane-flow"><span>Revalidate authority</span><span>Lock workspace</span><span>Blocks and flow</span><span>Files</span></div></div>
+      <div class="lane"><div class="lane-name">SUBMISSION KERNEL</div><div class="lane-flow"><span>Validate source scope</span><span>Lock submissions</span><span>Create / update / remove</span><span>Finalise</span></div></div>
+    </div>
+    <div class="territories">
+      <div class="territory"><span class="section-label">Adapter-owned</span><h3>Tool representation</h3><ul><li>Connector and destination authority</li><li>Schema blocks, flow and configuration</li><li>File preparation and native file rows</li><li>Planner projection and execution</li></ul></div>
+      <div class="territory"><span class="section-label">Kernel-owned</span><h3>Canonical submissions</h3><ul><li>Canonical command validation</li><li>Space and source-scoped submission locks</li><li>Submission create, update and remove</li><li>Immediate projections and finalisation</li></ul></div>
+    </div>
+    <div class="commit-note"><b>Separate commit boundaries:</b> complete catalogue reconciliation commits in its
+      own locked transaction. The target marker is then reloaded before the adapter opens a separate locked
+      transaction for selected-tool apply.</div>
+
+    <h2 id="s5"><span class="n">05</span>Where Source Semantics Differ</h2>
+    <p class="dek">A shared programme does not erase source meaning. Each adapter preserves the distinctions analysis
+      needs before its canonical submission commands reach the shared kernel.</p>
+    <div class="case-grid">
+      <div class="case"><span class="section-label">Versioned / Form App</span><h3>Represent the current definition exactly</h3><p>Analytical blocks come from the represented <code>current_form</code> definition. Unsupported or hidden whole elements stay out; hidden choices and matrix rows inside represented questions retain an explicit marker.</p></div>
+      <div class="case"><span class="section-label">Relationships / Conversation, Forum, Gather</span><h3>Flat, but not context-free</h3><p>Active records expose parent, container and depth as analytical fields. Required deleted ancestors become blank structural submissions rather than native Converlens threads.</p></div>
+      <div class="case"><span class="section-label">Structured / Five roots</span><h3>Use the common bounded contract</h3><p>Quick Poll, Visioner, Question &amp; Answer, Social Map and Budget conform complete source evidence into explicit analytical state.</p></div>
+    </div>
+    <div class="preserve-note"><b>Complete with a safety exception:</b> omission is authoritative except when
+      validated evidence marks an identity preserve-only because it cannot be represented safely. Prior native state
+      is retained and a bounded warning is produced. Deleted relationship history enters only where an active
+      descendant needs its parent chain resolved.</div>
+
+    <h2 id="s6"><span class="n">06</span>Files Across Five Adapters</h2>
+    <p class="dek">All five file-bearing adapters use bounded private transfer and strict source provenance. Their
+      native version history and removal policies are deliberately not identical.</p>
+    <div class="file-matrix">
+      <div class="file-row head"><b>Adapter</b><span>Replacement history</span><span>Native policy</span></div>
+      <div class="file-row"><b>Form App</b><span>Retained</span><span>Supersedes native versions and uses its own ownership-checked group removal.</span></div>
+      <div class="file-row"><b>Social Map</b><span>Retained</span><span>Supersedes native versions and performs its own shared-object reference check.</span></div>
+      <div class="file-row"><b>Conversation</b><span>Replaced</span><span>Removes the previous source-owned version group through the common locked remover.</span></div>
+      <div class="file-row"><b>Forum</b><span>Replaced</span><span>Removes the previous source-owned version group through the common locked remover.</span></div>
+      <div class="file-row"><b>Gather</b><span>Replaced</span><span>Allows one image descriptor per story and uses the common locked group remover.</span></div>
+    </div>
+    <div class="file-controls">
+      <div class="file-control"><b>LOCATION</b><span>One HTTP 302 supplies one structurally validated HTTPS location. Further redirects are disabled.</span></div>
+      <div class="file-control"><b>CREDENTIALS</b><span>The provider bearer token is omitted from the external file request.</span></div>
+      <div class="file-control"><b>BYTES</b><span>Received bytes must equal the source-declared size. A supplied Content-Length must also agree.</span></div>
+      <div class="file-control"><b>INTEGRITY</b><span>The operation snapshot is SHA-256 pinned. File-content hashes are not supplied or verified.</span></div>
+    </div>
+    <div class="file-warning"><b>Bounded degradation:</b> every admitted successful transfer becomes a private native
+      file with source-version provenance. Excluded or failed intents become warnings; an existing verified file may
+      be retained while a failed new file is omitted. Gather turns zero-byte or over-25-MiB images into bounded
+      warnings, while malformed snapshot evidence is rejected.</div>
+
+    <h2 id="s7"><span class="n">07</span>Authority And Consequences</h2>
+    <p class="dek">Social Point owns whether a source record continues to exist. That is record-lifecycle authority,
+      not merely ownership of selected fields, and its consequences extend to native resources attached to the
+      canonical submission.</p>
+    <div class="consequence-map">
+      <div class="consequence"><span class="section-label">Removed with the source record</span><h3>Dependent native state</h3><ul><li>Canonical submission</li><li>Attached comments</li><li>Activities and activity relationships</li><li>Analytical projections</li><li>Attached files and queued storage cleanup</li></ul></div>
+      <div class="consequence"><span class="section-label">Retained or detached</span><h3>Surrounding native state</h3><ul><li>Contacts remain</li><li>Native replies are detached from the removed parent</li><li>Preserve-only identities retain prior state</li><li>Files outside the source-owned submission remain local</li></ul></div>
+    </div>
+    <div class="authority-notes">
+      <div class="authority-note"><b>Catalogue authority:</b> a validated complete catalogue can remove omitted
+        Social Point-marked links, labels, spaces and projects. The policy for local child resources beneath a
+        source-owned project must remain explicit.</div>
+      <div class="authority-note membership"><b>Membership boundary:</b> complete Social Point staff evidence
+        reconciles managed workspace and project memberships. Activity participants, contacts, reactions,
+        publication state and native thread membership remain outside the activity adapter contract.</div>
+    </div>
+
+    <h2 id="s8"><span class="n">08</span>Programme Evidence</h2>
+    <p class="dek">The contract repeats across all nine roots. Every adapter has acquisition, conformance, planning,
+      apply and targeted test coverage rather than relying on one generic importer path.</p>
+    <div class="proof-lattice">
+      <div class="proof-cell"><b>Quick Poll</b><span>ACQUIRE / CONFORM / PLAN / APPLY / TEST</span></div>
+      <div class="proof-cell"><b>Form App</b><span>ACQUIRE / CONFORM / PLAN / APPLY / TEST</span></div>
+      <div class="proof-cell"><b>Visioner</b><span>ACQUIRE / CONFORM / PLAN / APPLY / TEST</span></div>
+      <div class="proof-cell"><b>Question &amp; Answer</b><span>ACQUIRE / CONFORM / PLAN / APPLY / TEST</span></div>
+      <div class="proof-cell"><b>Social Map</b><span>ACQUIRE / CONFORM / PLAN / APPLY / TEST</span></div>
+      <div class="proof-cell"><b>Budget</b><span>ACQUIRE / CONFORM / PLAN / APPLY / TEST</span></div>
+      <div class="proof-cell"><b>Conversation</b><span>ACQUIRE / CONFORM / PLAN / APPLY / TEST</span></div>
+      <div class="proof-cell"><b>Forum</b><span>ACQUIRE / CONFORM / PLAN / APPLY / TEST</span></div>
+      <div class="proof-cell"><b>Gather</b><span>ACQUIRE / CONFORM / PLAN / APPLY / TEST</span></div>
+    </div>
+    <div class="proof-summary"><span>9 root adapters</span><span>64 adapter TypeScript files</span><span>18 adapter spec files</span><span>239 adapter test cases</span><span>Pure planners across all nine</span></div>
+
+    <h2 id="s9"><span class="n">09</span>The Implemented Outcome</h2>
+    <div class="programme-close">
+      <span class="section-label">Implemented programme outcome</span>
+      <blockquote>Source-specific semantics stay at the edge. Only explicit, source-owned canonical submission
+        commands reach the shared mutation kernel.</blockquote>
+      <p>Nine roots. Pure planners. Adapter-owned structure and files. One canonical submission boundary. Durable,
+        command-initiated operations. A controlled analytical representation that leaves Social Point authoritative
+        for the activity itself.</p>
+    </div>
+
+    <div class="journey-navigation" id="journey-navigation"></div>
+    <footer class="content-footer" id="content-footer"></footer>
+  </main>
+</div>
+</body>
+</html>

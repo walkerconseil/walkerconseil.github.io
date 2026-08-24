@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Get Started - SP Sync Engine</title>
+<link rel="stylesheet" href="assets/shared.css?v=white-signal-1">
+<script src="assets/site.js?v=tool-adapters-1" defer></script>
+<style>
+  main { min-width: 0; }
+  .get-started-header { margin-bottom: 32px; padding-bottom: 28px; border-bottom: 2px solid var(--slate); }
+  .get-started-header h1 { max-width: 900px; margin: 0; font-size: clamp(38px, 5vw, 58px); line-height: .96; letter-spacing: -.035em; }
+  .launch-console { width: 100%; overflow: hidden; border: 1px solid var(--gray-300); background: #fff; }
+  .command-deck { display: grid; grid-template-columns: 300px minmax(0, 1fr); background: var(--slate); color: var(--text-on-dark); }
+  .launch-access { padding: 23px; border-right: 1px solid var(--op-rule-dark); }
+  .launch-access h2 { margin: 0 0 10px; padding: 0; border: 0; color: var(--text-on-dark); font-size: 30px; line-height: 1; }
+  .launch-access > p { color: var(--muted-on-dark); font-size: 10.5px; }
+  .qa-button { display: flex; align-items: center; justify-content: space-between; gap: 22px; min-height: 54px; margin-top: 24px; padding: 13px 16px; border: 1px solid var(--op-lime); background: var(--op-lime); color: var(--text-on-signal); font-weight: 800; text-decoration: none; }
+  .qa-button small { display: block; margin-top: 3px; color: var(--text-on-signal); font-family: var(--mono); font-size: 9px; font-weight: 400; overflow-wrap: anywhere; }
+  .qa-button > span:last-child { color: var(--text-on-signal); font-family: var(--mono); font-size: 20px; }
+  .qa-button:hover, .qa-button:focus-visible { border-color: #fff; background: #fff; color: var(--slate); outline: 2px solid var(--clay); outline-offset: 3px; }
+  .qa-button:hover > span:last-child, .qa-button:focus-visible > span:last-child { color: var(--clay); }
+  .launch-instructions { display: flex; flex-direction: column; justify-content: center; padding: 23px; }
+  .instruction-label { margin-bottom: 18px; color: var(--muted-on-dark); font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: .085em; text-transform: uppercase; }
+  .access-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0; padding: 0; list-style: none; counter-reset: access; }
+  .access-list li { position: relative; min-width: 0; padding-left: 29px; color: var(--muted-on-dark); font-size: 13px; counter-increment: access; }
+  .access-list li::before { position: absolute; left: 0; top: 1px; color: var(--op-lime); font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: .08em; content: "0" counter(access); }
+  .launch-media { padding: 8px; background: var(--slate); }
+  .launch-media img { display: block; width: 100%; height: auto; background: var(--gray-150); }
+  .use-flow { display: grid; grid-template-columns: 100px repeat(3, 1fr); align-items: stretch; border-top: 1px solid var(--gray-300); background: var(--gray-150); }
+  .use-flow > * { padding: 13px 15px; border-right: 1px solid var(--gray-300); }
+  .use-flow > *:last-child { border-right: 0; }
+  .use-flow b { display: flex; align-items: center; color: var(--clay); font-family: var(--serif); font-size: 17px; font-weight: 600; }
+  .use-step { position: relative; color: var(--gray-700); font-size: 13.5px; }
+  .use-step span { display: block; margin-bottom: 4px; color: var(--gray-500); font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+  .use-step:not(:last-child)::after { position: absolute; top: 50%; right: -5px; z-index: 2; color: var(--clay); font-weight: 800; transform: translateY(-50%); content: ">"; }
+  .runbook-head { margin: 58px 0 18px; }
+  .section-label { color: var(--op-accent); font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .085em; text-transform: uppercase; }
+  .runbook-head h2 { margin: 6px 0 0; font-size: clamp(29px, 3.5vw, 42px); line-height: 1; letter-spacing: -.025em; }
+  .runbook-ledger { border-top: 2px solid var(--slate); }
+  .runbook-step { display: grid; grid-template-columns: 54px minmax(0, 1fr) 230px; border-bottom: 1px solid var(--gray-300); }
+  .runbook-step > * { padding: 14px; }
+  .runbook-number { color: var(--clay); font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .085em; }
+  .runbook-step h3 { margin: 0 0 4px; font-size: 15px; font-weight: 600; }
+  .runbook-step p { margin: 0; color: var(--gray-500); font-size: 10px; }
+  .runbook-proof { align-self: stretch; background: #edf1e7; color: #52663e; font-family: var(--mono); font-size: 8.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .runbook-proof b { display: block; margin-bottom: 5px; color: var(--slate); }
+  .recovery { margin-top: 14px; padding: 14px 16px; border-left: 4px solid var(--rust); background: #faece8; font-size: 11px; }
+  .recovery b { color: var(--rust); }
+
+  @media (max-width: 820px) {
+    .command-deck { grid-template-columns: 1fr; }
+    .launch-access { border-right: 0; border-bottom: 1px solid var(--gray-700); }
+    .access-list { grid-template-columns: 1fr; gap: 12px; }
+    .runbook-step { grid-template-columns: 48px minmax(0, 1fr); }
+    .runbook-proof { grid-column: 2; }
+  }
+  @media (max-width: 560px) {
+    .get-started-header h1 { font-size: 38px; }
+    .launch-access, .launch-instructions { padding: 20px; }
+    .use-flow { grid-template-columns: 1fr; }
+    .use-flow > * { border-right: 0; border-bottom: 1px solid var(--gray-300); }
+    .use-flow > *:last-child { border-bottom: 0; }
+    .use-step:not(:last-child)::after { top: auto; right: 15px; bottom: -7px; transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body data-page="05">
+<div class="top-header" id="top-header"></div>
+<div class="page">
+  <nav>
+    <div class="label">On this page</div>
+    <a href="#try">Try Data-QA</a>
+    <a href="#production">Production Runbook Summary</a>
+    <a href="#recovery">Disable and recover</a>
+    <div class="sidebar-index" id="sidebar-index"></div>
+  </nav>
+
+  <main>
+    <header class="get-started-header">
+      <div class="breadcrumb"><a href="index.html">SP Sync Engine</a><span class="separator">/</span><span>Get Started</span></div>
+      <h1>Start with the working system, then activate production with control.</h1>
+    </header>
+
+    <section class="launch-console">
+      <div class="command-deck">
+        <div class="launch-access">
+          <h2 id="try">Open Data-QA</h2>
+          <p>A curated selection from the Engineering catalogue, connected to production Converlens.</p>
+          <a class="qa-button" href="https://hive-cnvl-test-data-qa.clint.d2.harvestdp.com/" target="_blank" rel="noreferrer">
+            <span>Launch Data-QA<small>hive-cnvl-test-data-qa.clint.d2.harvestdp.com</small></span>
+            <span aria-hidden="true">&gt;</span>
+          </a>
+        </div>
+        <div class="launch-instructions">
+          <div class="instruction-label">Before you launch</div>
+          <ol class="access-list">
+            <li>Connect NordLayer to Dedicated Australia.</li>
+            <li>Use the standard shared QA details at the browser prompt.</li>
+            <li>Sign in with the standard shared QA Hive account.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="launch-media">
+        <img src="assets/sp-sync-engine.gif" alt="SPSync walkthrough from a Social Point form report into Converlens">
+      </div>
+      <div class="use-flow">
+        <b>And then...</b>
+        <div class="use-step"><span>01</span>Choose a report.</div>
+        <div class="use-step"><span>02</span>Open it in Analytics.</div>
+        <div class="use-step"><span>03</span>Explore the synchronised data.</div>
+      </div>
+    </section>
+
+    <section aria-labelledby="production">
+      <div class="runbook-head">
+        <span class="section-label">Production Runbook Summary</span>
+        <h2 id="production">From dark capability to one enabled Site.</h2>
+      </div>
+      <div class="runbook-ledger">
+        <div class="runbook-step">
+          <span class="runbook-number">01</span>
+          <div><h3>Confirm authority</h3><p>Name exact refs, operators, target Sites, acceptance and rollback owners.</p></div>
+          <div class="runbook-proof"><b>Continue when</b>Every mutation boundary is explicitly authorised.</div>
+        </div>
+        <div class="runbook-step">
+          <span class="runbook-number">02</span>
+          <div><h3>Inventory and pre-provision</h3><p>Pair every API/Hive deployment, create the disabled Hive Vault record and confirm both Git stanzas.</p></div>
+          <div class="runbook-proof"><b>Continue when</b>Every application, field and target revision is unambiguous.</div>
+        </div>
+        <div class="runbook-step">
+          <span class="runbook-number">03</span>
+          <div><h3>Prove rendering</h3><p>Measure live Argo, AVP and Helm, then run static and exact-live candidate renders.</p></div>
+          <div class="runbook-proof"><b>Continue when</b>Every render passes with no unresolved placeholder.</div>
+        </div>
+        <div class="runbook-step">
+          <span class="runbook-number">04</span>
+          <div><h3>Deploy capability dark</h3><p>Propagate generic wiring and reconcile API before Hive while all Sites remain disabled.</p></div>
+          <div class="runbook-proof"><b>Continue when</b>Health and fail-closed admission checks pass.</div>
+        </div>
+        <div class="runbook-step">
+          <span class="runbook-number">05</span>
+          <div><h3>Establish trust</h3><p>Private key material goes to Hive Vault; only public trust goes to Converlens.</p></div>
+          <div class="runbook-proof"><b>Continue when</b>Issuer, origin and public key validate without secret exposure.</div>
+        </div>
+        <div class="runbook-step">
+          <span class="runbook-number">06</span>
+          <div><h3>Activate the cluster</h3><p>Write the matched Hive key pair first, then merge API and Hive identity configuration together.</p></div>
+          <div class="runbook-proof"><b>Required order</b>Vault before Git. API before Hive.</div>
+        </div>
+        <div class="runbook-step">
+          <span class="runbook-number">07</span>
+          <div><h3>Enable one Site and accept</h3><p>Enable one audited Site entitlement, then prove the intended destination and fail-closed cases.</p></div>
+          <div class="runbook-proof"><b>Complete when</b>The Site passes Protocol A and controlled acceptance.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="recovery" id="recovery"><b>If anything goes wrong:</b> disable the affected Site first, wait for admitted work to drain, and treat cluster disablement or offboarding as separate authorised actions.</div>
+
+    <div class="journey-navigation" id="journey-navigation"></div>
+    <footer class="content-footer" id="content-footer"></footer>
+  </main>
+</div>
+</body>
+</html>
